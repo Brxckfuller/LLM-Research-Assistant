@@ -121,9 +121,10 @@ def build_retrieval_queries(question: str) -> List[str]:
         return [
             question,
             f"{question} thesis central argument main claim conclusion",
-            f"{question} author argues author claims author rejects author criticises author concludes",
-            f"{question} objection response problem solution view position",
-            f"{question} Chalmers hard problem chimera illusion easy problems",
+            f"{question} author argues author claims author suggests author rejects author criticises author concludes",
+            f"{question} introduction abstract conclusion summary",
+            f"{question} problem objection response view position",
+            f"{question} key claim key argument main point",
         ]
 
     if question_type == "list":
