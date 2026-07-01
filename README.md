@@ -497,34 +497,6 @@ These limitations are typical of RAG systems and were useful in understanding th
 
 ---
 
-# What I Learned
-
-This project helped me understand that the hardest part of building useful LLM applications is often not the generation step itself, but the retrieval and context construction around it.
-
-The most important lessons were:
-
-- high-quality retrieval matters more than long prompts
-- simple semantic search is not always enough
-- page citations make answers more trustworthy
-- prompt structure strongly affects answer reliability
-- local LLMs are useful but can be slower and less consistent
-- academic documents require more careful handling than ordinary text
-
----
-
-# Possible Improvements
-
-The next improvements I would make are:
-
-- add OCR support for scanned PDFs
-- add multi-paper comparison mode
-- add persistent saved question history
-- improve retrieval evaluation with a small benchmark set
-- add export to Markdown or PDF notes
-- add optional hosted model support
-- add clearer confidence indicators for retrieved evidence
-
----
 
 # Repository Status
 
