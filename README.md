@@ -238,21 +238,7 @@ llm-research-paper-assistant/
 
 ---
 
-# Screenshots
 
-### Application
-
-![Application](screenshots/app.png)
-
-### Retrieval Pipeline
-
-![Pipeline](screenshots/pipeline.png)
-
-### Example Response
-
-![Answer](screenshots/example_answer.png)
-
----
 
 # Installation
 
