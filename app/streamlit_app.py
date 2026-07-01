@@ -19,6 +19,9 @@ from src.ollama_client import stream_ollama
 
 import fitz  # PyMuPDF
 
+from streamlit_searchbox import st_searchbox
+from difflib import SequenceMatcher
+
 import json
 
 from src.query_planner import classify_question, build_retrieval_queries
@@ -34,7 +37,7 @@ PAPERS_DIR.mkdir(parents=True, exist_ok=True)
 INDEX_DIR.mkdir(parents=True, exist_ok=True)
 METADATA_DIR.mkdir(parents=True, exist_ok=True)
 
-RAW_RETRIEVAL_K = 40
+RAW_RETRIEVAL_K = 30
 
 DOCUMENT_METADATA_FILE = METADATA_DIR / "document_display_metadata.json"
 
@@ -385,6 +388,52 @@ def get_pdf_page_count(pdf_path: Path) -> int:
     page_count = doc.page_count
     doc.close()
     return page_count
+
+
+def document_search_score(query: str, document_name: str) -> float:
+    if not query:
+        return 1.0
+
+    q = query.lower().strip()
+    display = get_display_title(document_name).lower()
+    raw = document_name.lower()
+
+    searchable = f"{display} {raw}".replace("_", " ").replace("-", " ")
+
+    if q in searchable:
+        return 10.0
+
+    tokens = searchable.split()
+
+    token_score = max(
+        SequenceMatcher(None, q, token).ratio()
+        for token in tokens
+    ) if tokens else 0.0
+
+    full_score = SequenceMatcher(None, q, searchable).ratio()
+
+    return max(token_score, full_score)
+
+
+def search_documents(query: str):
+    documents = st.session_state.get("documents", [])
+
+    if not query:
+        return documents
+
+    scored = [
+        (doc, document_search_score(query, doc))
+        for doc in documents
+    ]
+
+    return [
+        doc for doc, score in sorted(
+            scored,
+            key=lambda item: item[1],
+            reverse=True,
+        )
+        if score >= 0.35
+    ]
 
 
 def extract_pdf_title_author(pdf_path: Path) -> dict:
@@ -920,12 +969,15 @@ else:
 
 document_options = st.session_state["documents"]
 
-selected_document = st.selectbox(
+selected_document = st_searchbox(
+    search_function=search_documents,
     label="Choose a paper",
-    options=document_options,
-    format_func=get_display_title,
-    disabled=not document_options,
+    placeholder="Search by title, author, or file name...",
+    key="document_searchbox",
 )
+
+if selected_document is None:
+    selected_document = st.session_state["documents"][0] if st.session_state["documents"] else None
 
 question = st.text_area(
     "Question",

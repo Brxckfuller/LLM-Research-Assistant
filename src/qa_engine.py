@@ -93,6 +93,16 @@ Rules:
 - Key points must be Markdown dot points, not a table.
 - Do not use inline bullet symbols.
 
+Additional answering rules:
+- Answer the user's exact question before providing background or context.
+- If the question asks for numerical values, percentages, dates, quantities, or comparisons, begin the answer with those values.
+- Prefer the paper's own wording whenever it directly answers the question.
+- Do not replace precise figures with vague summaries such as "significantly increased" or "many".
+- Do not introduce related statistics unless they directly answer the user's question.
+- Keep different measurements separate, such as government spending, military expenditure, GDP, defence budgets, and security spending, unless the paper explicitly compares them.
+- If multiple pieces of retrieved evidence refer to different metrics, clearly distinguish them instead of combining them.
+- If the paper contains a sentence that directly answers the question, closely follow that sentence before adding explanation.
+
 QUESTION:
 {question}
 
@@ -103,7 +113,7 @@ Write the answer exactly like this:
 
 # Answer
 
-One short paragraph answering the question directly.
+One short paragraph answering the question directly. If the evidence supports a more detailed answer, write 2-3 concise paragraphs.
 
 # Key points
 

@@ -8,3 +8,4 @@ joblib
 pytest
 streamlit
 requests
+streamlit-searchbox
