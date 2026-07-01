@@ -1,6 +1,6 @@
 # LLM Research Assistant
 
-> An end-to-end Retrieval-Augmented Generation (RAG) system that answers questions over academic research papers using semantic search, vector retrieval, reranking and a local Large Language Model.
+An end-to-end Retrieval-Augmented Generation (RAG) system that answers questions over academic research papers using semantic search, vector retrieval, reranking and a local Large Language Model.
 
 ---
 
