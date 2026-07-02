@@ -94,9 +94,24 @@ def build_index(pdf_path):
     print(f"Chunks: {len(chunks)}")
 
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        raise ValueError("Usage: python src/index_builder.py path/to/file.pdf")
+PAPERS_DIR = BASE_DIR / "data" / "papers"
 
-    build_index(sys.argv[1]) 
+
+def build_all_indexes():
+    pdf_files = list(PAPERS_DIR.glob("*.pdf"))
+
+    if not pdf_files:
+        print("No PDF files found in data/papers/")
+        return
+
+    print(f"Found {len(pdf_files)} PDF(s).\n")
+
+    for pdf in pdf_files:
+        build_index(pdf)
+
+    print("\nAll documents indexed successfully.")
+
+
+if __name__ == "__main__":
+    build_all_indexes()
 
