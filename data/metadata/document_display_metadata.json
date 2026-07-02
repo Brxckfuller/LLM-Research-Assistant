@@ -26,5 +26,9 @@
   "StrawsonRealisticPhysicalism2006": {
     "title": "Realistic Monism",
     "author": "Galen Strawson"
+  },
+  "2411.10329v2": {
+    "title": "Safe Text-to-Image Generation: Simply Sanitize the Prompt Embedding",
+    "author": "Huming Qiu, Guanxu Chen, Mi Zhang, Min Yang, Xiaohan Zhang, Xiaoyu You"
   }
 }
