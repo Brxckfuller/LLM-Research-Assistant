@@ -190,7 +190,7 @@ The model generates:
 # Project Structure
 
 ```text
-llm-research-paper-assistant/
+LLM-Research-Assistant/
 
 ├── app/
 │   └── streamlit_app.py
@@ -242,55 +242,154 @@ llm-research-paper-assistant/
 
 # Installation
 
-Clone the repository
+These commands should be run in your terminal, not inside a Python file.
+
+## 1. Clone the repository
 
 ```bash
-git clone https://github.com/Brxckfuller/llm-research-paper-assistant.git
-
-cd llm-research-paper-assistant
+git clone https://github.com/Brxckfuller/LLM-Research-Assistant.git
+cd LLM-Research-Assistant
 ```
 
-Install dependencies
+## 2. Create and activate a virtual environment
+
+For macOS/Linux:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+For Windows:
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+## 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Start Ollama
+## 4. Install and start Ollama
+
+This project uses Ollama to run the local language model.
+
+Install Ollama from:
+
+```text
+https://ollama.com
+```
+
+Start Ollama:
 
 ```bash
 ollama serve
 ```
 
-Pull a compatible model
+In a separate terminal window, pull the model used by the project:
 
 ```bash
 ollama pull llama3
 ```
 
-Run the application
+## 5. Add research papers
 
-```bash
-streamlit run app/streamlit_app.py
-```
-
----
-
-# Using the Application
-
-1. Place research papers inside
+Place PDF research papers inside:
 
 ```text
 data/papers/
 ```
 
-2. Build the document index.
+If the folder does not exist, create it:
 
-3. Launch the Streamlit interface.
+```bash
+mkdir -p data/papers
+```
 
-4. Ask questions in natural language.
+## 6. Build the document index
 
-5. The system retrieves relevant passages and generates grounded answers with citations.
+After adding PDFs to `data/papers/`, build the index:
+
+```bash
+python src/index_builder.py
+```
+
+This processes the PDFs, extracts text, chunks the documents, creates embeddings and stores the searchable index.
+
+## 7. Run the application
+
+```bash
+streamlit run app/streamlit_app.py
+```
+
+The Streamlit app should open in your browser. You can then ask questions about the indexed papers.
+
+---
+
+# Using the Application
+
+## 1. Add PDF papers
+
+Place one or more academic PDF papers inside:
+
+```text
+data/papers/
+```
+
+## 2. Build or rebuild the index
+
+Run this command from the project root:
+
+```bash
+python src/index_builder.py
+```
+
+You should rebuild the index whenever you add, remove or change papers in `data/papers/`.
+
+## 3. Start Ollama
+
+Make sure Ollama is running before asking questions:
+
+```bash
+ollama serve
+```
+
+If you have not already downloaded the model, run:
+
+```bash
+ollama pull llama3
+```
+
+## 4. Launch the Streamlit app
+
+```bash
+streamlit run app/streamlit_app.py
+```
+
+## 5. Ask a question
+
+Use the web interface to ask questions in natural language, such as:
+
+```text
+What is the main argument of this paper?
+```
+
+```text
+What evidence does the author provide?
+```
+
+```text
+What are the limitations of the study?
+```
+
+## 6. Review the answer and citations
+
+The system retrieves relevant passages from the indexed papers and generates an answer grounded in those passages.
+
+Where available, answers include page citations so the user can check the response against the original source document.
 
 ---
 # Technical Design
