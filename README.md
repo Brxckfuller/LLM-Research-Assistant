@@ -338,6 +338,7 @@ Place one or more academic PDF papers inside:
 ```text
 data/papers/
 ```
+You can either place PDFs in data/papers/ and build the index manually, or upload a PDF through the Streamlit interface.
 
 ## 2. Build or rebuild the index
 
