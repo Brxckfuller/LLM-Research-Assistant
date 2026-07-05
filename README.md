@@ -29,7 +29,6 @@ The system:
 - identifies the most relevant document
 - retrieves the highest-scoring text chunks
 - reranks retrieved passages
-- extracts atomic evidence
 
 ↓
 
