@@ -488,9 +488,6 @@ How does this paper define physicalism?
 What does the paper say about North Korean support for Russia?
 ```
 
-```text
-Compare the author's view with another paper in the collection.
-```
 
 ---
 
