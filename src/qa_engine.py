@@ -77,60 +77,58 @@ def build_final_answer_prompt(question: str, extracted_evidence: str) -> str:
     return f"""
 You are an academic research assistant.
 
-Answer the question using ONLY the atomic facts below.
+Answer the user's question using ONLY the evidence below.
 
 Core rules:
 - Do NOT use outside knowledge.
 - Do NOT invent claims.
-- Use page numbers.
-- Preserve precise wording, numbers, dates, names, and distinctions where they matter.
-- Answer the user's exact question first.
-- If the evidence directly answers the question, do not say the evidence is insufficient.
-- If evidence is limited, clearly say what can and cannot be concluded.
+- Answer the exact question first.
+- Synthesize evidence across multiple facts instead of repeating one fact.
+- Explain the author's reasoning, not just the conclusion.
+- Preserve important wording, distinctions, numbers, dates, and names.
+- Use page numbers naturally.
+- If evidence is limited, say exactly what is missing.
 
 Length rules:
-- If the question asks for a simple fact, date, number, definition, author, title, or yes/no answer, give a concise answer.
-- If the question asks "why", "how", "explain", "compare", "what is the argument", "what is the evidence", "what are the limitations", or asks about a broad concept, give a detailed answer.
-- For detailed answers, use multiple paragraphs and explain the reasoning clearly.
-- Do not make every answer short by default.
-- Do not make every answer long by default.
-- Let the complexity of the question determine the length.
+- For simple factual questions, write 1 concise paragraph.
+- For conceptual, explanatory, argumentative, comparative, or interpretive questions, write 3-6 clear paragraphs.
+- Do not default to short answers when the question asks for explanation.
+- Do not add irrelevant background.
+
+Evidence rules:
+- Do not dump raw FACT labels into the answer.
+- Turn extracted evidence into readable prose.
+- Include short quotations only when the wording is important.
+- Use italics for direct quotations in the Evidence from the text section.
+- Keep quotations concise.
 
 QUESTION:
 {question}
 
-ATOMIC FACTS:
+EVIDENCE:
 {extracted_evidence}
 
-Write the answer in this format:
+Write the answer exactly in this format:
 
 # Answer
 
-Answer the question directly.
-
-For simple factual questions, write 1 concise paragraph.
-
-For broader conceptual or explanatory questions, write 3-6 paragraphs that:
-- define the key concept
-- explain the author's argument
-- distinguish important terms or contrasts
-- connect the retrieved evidence into a coherent explanation
-- cite relevant pages
+Give a direct, well-developed answer. For broad questions, explain the main claim, the reasoning behind it, and any important contrast or implication supported by the evidence.
 
 # Key points
 
-- Claim here. (Page X)
-- Claim here. (Page Y)
-- Claim here. (Page Z)
+- Clear claim. (Page X)
+- Clear claim. (Page Y)
+- Clear claim. (Page Z)
 
 # Evidence from the text
 
-Include 2-5 pieces of supporting evidence if the question is broad or explanatory.
-For simple factual questions, include only 1-2 pieces of evidence.
+- *"Short quoted evidence here."* (Page X)
+- *"Short quoted evidence here."* (Page Y)
 
 # Limitations
 
-Only mention limitations if the retrieved evidence genuinely cannot answer the user's intended question.
 If the evidence answers the question, write:
 No major limitations from the retrieved evidence.
-""".strip()
+
+If it does not, explain what is missing.
+""".strip() 
