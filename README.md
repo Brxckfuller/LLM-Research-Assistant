@@ -1247,13 +1247,6 @@ The resulting system is intended as a practical exploration of how modern docume
 
 ---
 
-# License
-
-This project is released under the MIT License.
-
-See the `LICENSE` file for details.
-
----
 
 # About the Author
 
