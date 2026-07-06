@@ -11,68 +11,38 @@
 
 ---
 
-## Overview
 
-Large Language Models cannot reliably answer questions about documents they have never seen. This project implements a complete Retrieval-Augmented Generation (RAG) pipeline that grounds every answer in evidence retrieved directly from uploaded research papers.
+A modular Retrieval-Augmented Generation (RAG) system that answers questions about research papers using hybrid retrieval, cross-encoder reranking, evidence-aware prompting, and local large language models.
 
-Unlike basic RAG demonstrations that simply retrieve the nearest text chunks, this system introduces several engineering improvements:
+Unlike many demonstration RAG projects that simply retrieve the nearest text chunks before prompting a language model, this project implements a multi-stage retrieval pipeline designed to improve retrieval quality, transparency, and answer grounding. It combines dense semantic search, lexical retrieval, passage reranking, query-aware retrieval routing, evidence extraction, and local inference into a single application with an interactive Streamlit interface.
 
-- Adaptive retrieval routing
-- Dense vector search
-- Cross-encoder passage reranking
-- Atomic evidence extraction
-- Citation-aware prompting
-- Optional live web search
-- Fully local answer generation using Ollama
-
-The result is a research assistant capable of answering detailed questions while remaining grounded in source material and providing supporting evidence for its responses.
+The project was developed as part of my AI engineering portfolio to explore how modern Retrieval-Augmented Generation systems can be engineered without relying on high-level orchestration frameworks. Rather than treating retrieval as a black box, the implementation separates each stage into independent components that can be evaluated, replaced, and improved individually.
 
 ---
 
-## Key Engineering Highlights
+## Demo
 
-- **Local-first RAG pipeline** using Ollama for private, offline-capable answer generation.
-- **Hybrid retrieval** combining dense semantic search with BM25 keyword search for stronger retrieval coverage.
-- **FAISS vector indexing** for fast local similarity search over uploaded academic papers.
-- **Cross-encoder reranking** to improve passage relevance before context is sent to the language model.
-- **Adaptive routing** between uploaded document retrieval and live web search using Tavily.
-- **Two-stage prompting** with evidence extraction before final answer generation to reduce hallucination.
-- **Citation-aware responses** that preserve page numbers and source references.
-- **Streamlit interface** with upload, indexing, retrieval diagnostics, source inspection, and progress visualisation.
-- **Modular Python architecture** designed so retrieval, reranking, prompting, and web search can be improved independently.
+The screenshots below illustrate the complete workflow of the application.
 
----
-
-
-# Demo
-
-The following screenshots show the complete workflow of the application.
-
----
-
-## Upload Research Paper
-
+### Upload Research Paper
 
 ![Upload Research Paper](docs/images/upload-paper.png)
 
 ---
 
-## Ask Questions
-
+### Ask Questions
 
 ![Question Interface](docs/images/query-interface.png)
 
 ---
 
-## Retrieval Progress
-
+### Retrieval Progress
 
 ![Retrieval Progress](docs/images/retrieval-progress1.png)
 
 ---
 
-## Generated Answer
-
+### Generated Answer
 
 ![Generated Answer](docs/images/generated-answer.png)
 
@@ -84,827 +54,499 @@ The following screenshots show the complete workflow of the application.
 
 ---
 
-# Features
+# About the Project
 
-## 📄 PDF Processing
+Large language models cannot reliably answer questions about documents they have never seen. Standard Retrieval-Augmented Generation (RAG) systems address this limitation by retrieving relevant passages from external documents and providing those passages as context to the language model before answer generation.
 
-Research papers are parsed using **PyMuPDF**, preserving page ordering while extracting clean textual content for indexing.
+While basic RAG pipelines work well for many use cases, they also introduce several practical engineering challenges:
 
----
+- semantic retrieval may miss exact terminology
+- keyword retrieval may miss conceptual similarity
+- retrieved chunks are often noisy
+- language models may over-rely on weak evidence
+- retrieval quality is difficult to inspect
+- users rarely know how an answer was produced
 
-## ✂ Intelligent Chunking
+This project investigates those challenges by implementing a modular retrieval pipeline rather than relying on an end-to-end framework.
 
-Rather than embedding an entire paper as one document, papers are divided into overlapping chunks suitable for semantic retrieval.
+The application performs document ingestion, indexing, retrieval, reranking, evidence extraction, prompt construction, and local answer generation as independent stages. This separation makes each component easier to evaluate, replace, and improve while providing greater transparency during inference.
 
-The chunking strategy uses:
-
-- Recursive text splitting
-- Configurable chunk size
-- Configurable overlap
-- Metadata preservation
-- Page number tracking
-
-This improves retrieval recall while ensuring enough surrounding context is retained for accurate answer generation.
+Rather than optimising solely for answer generation, the project focuses on retrieval quality, engineering modularity, and explainability.
 
 ---
 
-## 🧠 Dense Semantic Retrieval
+# Key Engineering Highlights
 
-Every chunk is embedded using a SentenceTransformer embedding model and indexed in **FAISS**.
+Compared with a basic RAG implementation, this project introduces several engineering improvements.
 
-During retrieval:
+- Hybrid retrieval combining dense semantic search with lexical retrieval.
+- Cross-encoder reranking to improve passage relevance before generation.
+- Query-aware retrieval routing that dynamically decides whether uploaded documents alone are sufficient or whether external web search should also be performed.
+- Evidence-aware prompting that encourages grounded responses supported by retrieved passages.
+- Citation-aware answer generation using document page references.
+- Modular architecture where retrieval, reranking, prompting, indexing, and generation remain independent components.
+- Local inference through Ollama without dependence on commercial APIs.
+- Interactive Streamlit interface showing retrieval progress and previous questions.
 
-1. The user question is embedded.
-2. FAISS performs approximate nearest-neighbour search.
-3. The most semantically similar chunks are returned.
-
-Unlike keyword search, semantic retrieval can locate relevant passages even when different terminology is used.
-
----
-
-## 🎯 Cross-Encoder Reranking
-
-Nearest-neighbour retrieval is fast but imperfect.
-
-To improve relevance, retrieved passages are reranked using a cross-encoder model that jointly evaluates the question and each candidate passage.
-
-Pipeline:
-
-```
-User Question
-      │
-      ▼
- FAISS Retrieval
-      │
-Top K Chunks
-      │
-      ▼
-Cross Encoder
-      │
-      ▼
-Ranked Passages
-```
-
-Only the highest scoring passages are forwarded to the language model.
-
-This significantly reduces irrelevant context and improves answer quality.
+The objective was not simply to produce correct answers, but to make the retrieval process observable and easy to extend.
 
 ---
 
-## 🔎 Adaptive Retrieval
+# System Architecture
 
-The system automatically determines how a question should be answered.
-
-Questions are first classified into one of two categories:
-
-- Document-specific
-- General knowledge
-
-Document questions are answered using the uploaded paper.
-
-General knowledge questions are automatically routed to live web search.
-
-This prevents irrelevant document retrieval while allowing the assistant to answer broader research questions.
-
-Example:
+The overall system follows a modular Retrieval-Augmented Generation pipeline.
 
 ```
-"What methodology does this paper use?"
+
+                 PDF Upload
+                      │
+                      ▼
+              Document Loader
+                      │
+                      ▼
+                 Text Chunking
+                      │
+                      ▼
+             Embedding Generation
+                      │
+                      ▼
+                 FAISS Index
+                      │
+          ┌───────────┴───────────┐
+          │                       │
+          ▼                       ▼
+   Dense Retrieval          BM25 Retrieval
+          │                       │
+          └───────────┬───────────┘
+                      ▼
+            Hybrid Candidate Set
+                      │
+                      ▼
+        Cross Encoder Reranking
+                      │
+                      ▼
+          Evidence Selection
+                      │
+                      ▼
+        Prompt Construction
+                      │
+                      ▼
+            Ollama Local LLM
+                      │
+                      ▼
+       Grounded Answer + Citations
+
 ```
 
-↓
+Each stage is implemented independently within the codebase, making the retrieval pipeline significantly easier to inspect and modify than monolithic RAG implementations.
 
-Uses document retrieval
+This modular design also makes experimentation straightforward. Individual retrieval methods, embedding models, rerankers, or language models can be replaced without rewriting the remainder of the system.
+
+---
+# Engineering Decisions
+
+One of the primary goals of this project was to understand how modern Retrieval-Augmented Generation systems are engineered internally rather than relying on high-level orchestration libraries.
+
+Instead of building the application around frameworks such as LangChain or LlamaIndex, the retrieval pipeline was implemented using modular Python components. This provides complete control over indexing, retrieval, reranking, prompt construction, and generation while making individual stages easier to evaluate and replace.
+
+The project intentionally prioritises transparency over abstraction.
 
 ---
 
-```
-"What is Retrieval-Augmented Generation?"
-```
+## Why a Custom Retrieval Pipeline?
 
-↓
+Many RAG tutorials hide most of the retrieval process behind a framework.
 
-Uses web search
+Although this accelerates development, it also makes it difficult to understand:
 
----
+- where retrieval quality is lost
+- why irrelevant passages are selected
+- how reranking affects final answers
+- which component contributes most to latency
+- how retrieval strategies can be compared
 
-## 🌍 Live Web Search
+Instead, this project separates the pipeline into individual modules so every stage can be inspected independently.
 
-When a question cannot be answered from the uploaded paper, the system automatically switches to live web search.
+Advantages of this approach include:
 
-The web pipeline:
-
-```
-Question
-      │
-      ▼
-Query Planning
-      │
-      ▼
-Tavily Search API
-      │
-      ▼
-Result Processing
-      │
-      ▼
-Evidence Extraction
-      │
-      ▼
-Local LLM
-```
-
-This enables the assistant to answer questions beyond the scope of uploaded documents while still grounding responses in retrieved evidence.
+- easier debugging
+- clearer code organisation
+- simpler experimentation
+- component-level testing
+- straightforward model replacement
+- reduced framework lock-in
 
 ---
 
-## 📑 Evidence Extraction
+## Why Hybrid Retrieval?
 
-Rather than passing every retrieved passage directly to the LLM, the system extracts the most relevant evidence before prompt construction.
+Dense semantic retrieval performs well when queries use language that is conceptually similar to the source document.
+
+However, research papers frequently contain:
+
+- acronyms
+- equations
+- gene names
+- chemical compounds
+- technical terminology
+- author-specific vocabulary
+
+Dense retrieval alone may overlook these exact matches.
+
+Conversely, lexical retrieval methods such as BM25 excel at finding precise keyword matches but often miss semantically related passages.
+
+Rather than choosing one retrieval strategy, this project combines both.
+
+The retrieval process therefore consists of:
+
+1. Dense vector search using FAISS.
+2. Lexical retrieval using BM25.
+3. Candidate merging.
+4. Cross-encoder reranking.
+
+This hybrid strategy increases the likelihood that both semantic and exact-match evidence are available for answer generation.
+
+---
+
+## Why Cross-Encoder Reranking?
+
+Initial retrieval often returns passages that are individually relevant but not necessarily the best evidence for answering a particular question.
+
+To improve passage quality, the candidate set is reranked using a cross-encoder.
+
+Unlike embedding similarity, which compares vector representations independently, the cross-encoder jointly evaluates both the user query and each candidate passage.
+
+This generally produces a more accurate relevance score because the model considers the interaction between both pieces of text simultaneously.
+
+Only the highest-ranked passages are forwarded to the language model.
 
 Benefits include:
 
-- Reduced prompt size
-- Improved factual grounding
-- Less irrelevant context
-- Lower hallucination risk
+- reduced irrelevant context
+- improved evidence quality
+- more focused prompts
+- better citation accuracy
 
-Only the highest-value evidence is supplied to the language model.
-
----
-
-## 🤖 Local LLM Generation
-
-All answers are generated locally using **Ollama**.
-
-Advantages include:
-
-- No cloud inference costs
-- Offline capability
-- Data privacy
-- Low latency after model loading
-
-Because retrieval occurs before generation, the LLM answers using retrieved evidence rather than relying solely on its internal knowledge.
+Although reranking introduces additional latency, the improvement in passage relevance makes the trade-off worthwhile for research-oriented question answering.
 
 ---
 
-# Architecture
+## Why Local Language Models?
 
-The complete retrieval pipeline is shown below.
+The application performs answer generation locally using Ollama.
 
-```text
-                    User Question
-                          │
-                          ▼
-               Adaptive Route Selection
-                    ┌─────────────┐
-          Document? │             │ Web?
-                    ▼             ▼
-          PDF Retrieval      Tavily Search
-                    │             │
-                    ▼             ▼
-            Dense Retrieval   Search Results
-                    │             │
-                    ▼             ▼
-          Cross Encoder      Evidence Extraction
-              Reranking             │
-                    └──────┬────────┘
-                           ▼
-                  Prompt Construction
-                           │
-                           ▼
-                     Ollama (Local)
-                           │
-                           ▼
-                  Citation-aware Answer
+This design was chosen for several reasons.
+
+### Privacy
+
+Research papers may contain unpublished work or sensitive material.
+
+Keeping inference local avoids transmitting documents to external APIs.
+
+### Cost
+
+Running inference locally eliminates ongoing API costs and enables unrestricted experimentation.
+
+### Flexibility
+
+Different language models can be evaluated without modifying the remainder of the retrieval pipeline.
+
+### Reproducibility
+
+Using local models allows experiments to be reproduced consistently without depending on changing commercial APIs.
+
+---
+
+# Models Used
+
+The current implementation uses the following models and libraries.
+
+| Component | Model / Library | Purpose |
+|-----------|-----------------|---------|
+| Embedding Model | `sentence-transformers/all-MiniLM-L6-v2`* | Dense semantic embeddings |
+| Vector Database | FAISS | Approximate nearest neighbour search |
+| Lexical Retrieval | BM25 | Keyword retrieval |
+| Reranker | `cross-encoder/ms-marco-MiniLM-L-6-v2`* | Passage reranking |
+| Local LLM | Ollama (Llama 3.1)* | Answer generation |
+| PDF Processing | PyMuPDF | Document parsing |
+| Web Search | Tavily API | Optional external retrieval |
+| Interface | Streamlit | User interface |
+
+> *Replace the model names above with the exact models used I was using in the implementation later.
+
+---
+
+# Repository Structure
+
 ```
 
----
-
-# Technology Stack
-
-| Component | Technology |
-|-----------|------------|
-| Interface | Streamlit |
-| PDF Parsing | PyMuPDF |
-| Embeddings | SentenceTransformers |
-| Vector Database | FAISS |
-| Reranker | Cross Encoder |
-| Local LLM | Ollama |
-| Web Search | Tavily API |
-| Programming Language | Python 3.12 |
-
----
-
-# Why this project?
-
-Many RAG demonstrations stop after embedding documents into a vector database.
-
-This project focuses on the engineering components that make modern retrieval systems more reliable:
-
-- adaptive routing
-- passage reranking
-- evidence extraction
-- citation-aware prompting
-- retrieval visualisation
-- local inference
-- optional live web augmentation
-
-These components more closely resemble the architecture used in production retrieval systems than a minimal vector-search example.
-
-# System Pipeline
-
-The assistant follows a multi-stage Retrieval-Augmented Generation (RAG) pipeline that separates document retrieval from answer generation.
-
-```
-                   User Question
-                         │
-                         ▼
-              Adaptive Route Selection
-                ┌───────────────┐
-        Document Question?      Web Question?
-                │                     │
-                ▼                     ▼
-         PDF Retrieval          Tavily Search
-                │                     │
-                ▼                     ▼
-        Semantic Retrieval     Search Results
-                │                     │
-                ▼                     ▼
-      Cross Encoder Reranking  Evidence Extraction
-                │                     │
-                └──────────┬──────────┘
-                           ▼
-                 Prompt Construction
-                           ▼
-                  Ollama Local LLM
-                           ▼
-                   Citation Generation
-                           ▼
-                    Final Response
-```
-
----
-
-# Project Structure
-
-```
 LLM-Research-Assistant/
 
 ├── app/
-│   └── streamlit_app.py
+│ └── streamlit_app.py
 │
 ├── data/
-│   ├── papers/
-│   ├── faiss/
-│   └── metadata/
+│ ├── documents/
+│ ├── faiss_index/
+│ └── processed/
+│
+├── docs/
+│ └── images/
 │
 ├── src/
-│   ├── adaptive_retrieval.py
-│   ├── chunker.py
-│   ├── embeddings.py
-│   ├── evidence_extraction.py
-│   ├── index_builder.py
-│   ├── parser.py
-│   ├── prompt_builder.py
-│   ├── qa_engine.py
-│   ├── reranker.py
-│   ├── retriever.py
-│   └── web_search.py
+│ ├── adaptive_retrieval.py
+│ ├── chunker.py
+│ ├── embeddings.py
+│ ├── index_builder.py
+│ ├── ollama_client.py
+│ ├── pdf_loader.py
+│ ├── qa_engine.py
+│ ├── query_planner.py
+│ ├── reranker.py
+│ ├── retriever.py
+│ ├── vector_store.py
+│ └── web_search.py
 │
 ├── tests/
 │
 ├── requirements.txt
 └── README.md
+
 ```
 
-The project is intentionally modular so that each retrieval stage can be improved independently without affecting the remainder of the pipeline.
+The repository follows a modular architecture in which each stage of the retrieval pipeline is implemented independently.
+
+This organisation allows new retrieval strategies, embedding models, rerankers, or language models to be integrated with minimal changes to the surrounding code.
 
 ---
+# Retrieval Pipeline
 
-# 1. PDF Ingestion
-
-When a research paper is uploaded, it first passes through the ingestion pipeline.
-
-```
-PDF
- │
- ▼
-PyMuPDF
- │
- ▼
-Raw Text
- │
- ▼
-Chunking
- │
- ▼
-Embeddings
- │
- ▼
-FAISS Index
-```
-
-PyMuPDF was selected because it provides:
-
-- fast extraction
-- page-aware parsing
-- reliable Unicode handling
-- minimal external dependencies
-
-Each paper is indexed only once.
-
-Subsequent questions reuse the existing vector index without rebuilding embeddings.
-
----
-
-# 2. Intelligent Chunking
-
-Research papers are too large to embed as single documents.
-
-Instead, the document is divided into overlapping chunks.
-
-The implementation uses a recursive text splitter that attempts to preserve semantic structure while respecting the model's context window.
-
-Each chunk stores:
-
-- document name
-- page number
-- chunk text
-- chunk ID
-
-The overlap between chunks helps preserve context across section boundaries while reducing the chance that important information is split apart.
-
-Example
-
-```
-Chunk 18
-
-"...Transformer models achieve state-of-the-art
-performance on multiple benchmarks..."
-
----------------- overlap ----------------
-
-Chunk 19
-
-"...performance on multiple benchmarks.
-The authors evaluate..."
-```
-
-This significantly improves retrieval continuity.
-
----
-
-# 3. Embedding Generation
-
-Each chunk is converted into a dense vector representation using a SentenceTransformer embedding model.
-
-```
-Chunk
- │
- ▼
-SentenceTransformer
- │
- ▼
-768-dimensional embedding
-```
-
-Dense embeddings allow semantically similar passages to be retrieved even when they contain different wording.
-
-For example,
-
-Question
-
-```
-How is hallucination reduced?
-```
-
-can successfully retrieve a paragraph discussing
-
-```
-grounded factual generation
-```
-
-despite neither phrase containing the exact keywords.
-
----
-
-# 4. Vector Search
-
-All embeddings are stored inside a FAISS index.
-
-During question answering:
-
-```
-Question
-
-↓
-
-Embedding Model
-
-↓
-
-Question Embedding
-
-↓
-
-FAISS Similarity Search
-
-↓
-
-Top-k Candidate Passages
-```
-
-The number of retrieved passages can be configured directly from the Streamlit interface.
-
-Increasing the retrieval depth generally improves recall but also increases prompt size.
-
----
-
-# 5. Adaptive Routing
-
-Before retrieval begins, the question is classified to determine its source.
+The application separates retrieval into several independent stages. Rather than treating retrieval as a single operation, each stage performs a specific task before passing structured information to the next component.
 
 ```
 User Question
       │
       ▼
-Route Classifier
+Query Planning
       │
- ┌────┴────┐
- │         │
- ▼         ▼
-Document   Web
-```
-
-Document-specific questions are answered using the uploaded paper.
-
-Examples
-
-```
-What dataset did the authors use?
-
-Explain Figure 5.
-
-What loss function is proposed?
-```
-
-General knowledge questions automatically trigger live web search.
-
-Examples
-
-```
-Explain Retrieval-Augmented Generation.
-
-Who invented transformers?
-
-What are vector databases?
-```
-
-This prevents unnecessary document retrieval for questions that are unrelated to the uploaded paper.
-
----
-
-# 6. Passage Reranking
-
-Nearest-neighbour retrieval is efficient but not always accurate.
-
-The top retrieved passages are therefore reranked using a cross-encoder.
-
-Pipeline
-
-```
-Top 20 Retrieved Chunks
-
-↓
-
-Cross Encoder
-
-↓
-
-Relevance Scores
-
-↓
-
-Sorted Passages
-
-↓
-
-Top Evidence
-```
-
-Unlike embedding similarity, a cross-encoder jointly evaluates both the question and passage, producing substantially more accurate rankings.
-
-This stage improves retrieval precision by removing semantically similar but irrelevant chunks before prompt construction.
-
----
-
-# 7. Evidence Extraction
-
-Instead of sending every retrieved passage to the language model, the system extracts only the highest-value evidence.
-
-```
-Retrieved Chunks
-
-↓
-
+      ▼
+Hybrid Retrieval
+      │
+      ▼
+Cross Encoder Reranking
+      │
+      ▼
 Evidence Selection
-
-↓
-
-Relevant Facts
-
-↓
-
-Prompt Builder
+      │
+      ▼
+Prompt Construction
+      │
+      ▼
+Local LLM
+      │
+      ▼
+Grounded Response
 ```
 
-This reduces:
-
-- prompt length
-- duplicated context
-- token usage
-- hallucination risk
-
-Only evidence relevant to the user's question is forwarded to the LLM.
+This modular design makes the retrieval pipeline significantly easier to evaluate and extend than a monolithic implementation.
 
 ---
 
-# 8. Prompt Construction
+# Document Processing
 
-The retrieved evidence is inserted into a structured prompt before being passed to Ollama.
+When a PDF is uploaded through the Streamlit interface, the application automatically performs the following steps.
 
-The prompt instructs the model to:
+1. Parse the document.
+2. Extract textual content.
+3. Divide the text into overlapping chunks.
+4. Generate embeddings.
+5. Build a FAISS index.
+6. Store document metadata.
+7. Prepare BM25 retrieval structures.
 
-- answer only using supplied evidence
-- avoid unsupported claims
-- produce clear explanations
-- reference retrieved sources where appropriate
+The indexing process only occurs once for each uploaded document.
 
-Separating retrieval from prompt construction keeps the generation stage deterministic and easier to modify.
-
----
-
-# 9. Local Answer Generation
-
-Answers are generated using a locally hosted Ollama model.
-
-```
-Evidence
-
-↓
-
-Prompt
-
-↓
-
-Ollama
-
-↓
-
-Answer
-```
-
-Running the model locally provides several advantages:
-
-- private inference
-- offline operation
-- zero API costs
-- reproducible responses
-
-The retrieval pipeline performs the factual grounding, while the LLM focuses on explanation and synthesis.
+Subsequent questions reuse the generated index, allowing retrieval to remain fast even after many queries.
 
 ---
 
-# 10. Progressive User Interface
+# Chunking Strategy
 
-Rather than appearing frozen while retrieval occurs, the interface displays each retrieval stage in real time.
+Large language models cannot process entire research papers efficiently.
 
-For document retrieval, the interface shows:
+Instead, each paper is divided into overlapping chunks.
 
-- Scanning paper
-- Reranking passages
-- Extracting evidence
-- Building answer
-- Generating response
+Each chunk stores metadata including:
 
-For web search, the interface displays:
+- document name
+- page number
+- section
+- chunk identifier
+- extracted text
 
-- Expanding query
-- Searching web
-- Collecting results
-- Filtering and reranking
-- Extracting evidence
-- Building answer
-- Generating response
+The overlap between adjacent chunks reduces the chance that important information is split across chunk boundaries.
 
-This provides users with visibility into the retrieval process and improves the responsiveness of the application during longer operations.
-
-# Engineering Decisions
-
-Modern Retrieval-Augmented Generation systems are composed of many interchangeable components. Rather than selecting technologies arbitrarily, each component in this project was chosen based on the specific requirements of document-grounded question answering.
+This metadata later allows generated answers to reference the original source pages.
 
 ---
 
-# Why FAISS?
+# Hybrid Retrieval
 
-Several vector databases were considered during development, including ChromaDB, Pinecone and Weaviate.
+The retriever combines two complementary search strategies.
 
-FAISS was selected because it offers:
+## Semantic Retrieval
 
-- Extremely fast similarity search
-- Lightweight local deployment
-- No external services
-- Excellent Python integration
-- Simple persistence of indexes
+Every chunk embedding is stored within a FAISS index.
 
-For a local research assistant where documents are indexed once and queried many times, FAISS provides an excellent balance between performance and simplicity.
+When a question is asked:
 
-Trade-offs:
+1. The question is embedded.
+2. FAISS retrieves the nearest neighbouring chunks.
+3. Candidate passages are returned.
 
-Advantages
-
-- Fast retrieval
-- Small memory footprint
-- Easy local deployment
-
-Disadvantages
-
-- Limited metadata filtering
-- No distributed scaling
-- Manual index management
+Semantic retrieval performs well when similar concepts are expressed using different wording.
 
 ---
 
-# Why Sentence Transformers?
+## BM25 Retrieval
 
-Embedding quality determines retrieval quality.
+In parallel, BM25 performs lexical retrieval.
 
-Rather than relying on keyword matching, dense embeddings allow semantically related passages to be retrieved even when they share few common words.
+This improves retrieval for:
+
+- names
+- abbreviations
+- technical terminology
+- equations
+- exact phrases
+
+Rather than replacing semantic retrieval, BM25 provides an additional set of candidate passages.
+
+---
+
+## Candidate Merging
+
+The outputs of both retrieval methods are merged before reranking.
+
+This increases retrieval coverage while reducing the likelihood that useful passages are discarded too early.
+
+---
+
+# Query-Aware Retrieval Routing
+
+Not every question should be answered using the uploaded document alone.
+
+Before retrieval begins, the application performs lightweight routing to determine which knowledge source is most appropriate.
+
+Current routes include:
+
+| Route | Behaviour |
+|--------|-----------|
+| CHROMA | Retrieve information from uploaded documents |
+| WEB | Retrieve information from live web search |
+| BOTH | Combine uploaded documents with web search |
+
+Routing is currently implemented using rule-based query classification.
 
 For example,
 
-Question
-
 ```
-How does the paper reduce hallucinations?
+What does this paper conclude?
 ```
 
-may retrieve a passage discussing
+retrieves only from the uploaded document.
+
+Whereas,
 
 ```
-grounded factual generation
+What is the latest research on Retrieval-Augmented Generation?
 ```
 
-despite neither phrase containing identical vocabulary.
+is automatically routed to web search.
 
-This semantic capability significantly improves recall compared with traditional keyword search.
+This prevents unnecessary retrieval from unrelated documents while allowing the assistant to answer broader questions.
 
 ---
 
-# Why Hybrid Retrieval?
+# Cross Encoder Reranking
 
-The system combines multiple retrieval strategies rather than relying solely on dense vectors.
+Hybrid retrieval intentionally favours recall.
 
-Current retrieval pipeline:
+Consequently, some retrieved passages may only be loosely related to the user's question.
 
-```
-Question
+To improve precision, candidate passages are reranked before answer generation.
 
-↓
+Only the highest scoring passages are retained.
 
-Semantic Retrieval (FAISS)
-
-+
-
-BM25 Keyword Search
-
-↓
-
-Combined Candidate Passages
-
-↓
-
-Cross Encoder Reranking
-
-↓
-
-Final Context
-```
-
-Dense retrieval captures semantic similarity.
-
-BM25 improves retrieval when exact terminology, names, equations or abbreviations appear.
-
-Combining both methods increases robustness across a wider range of academic writing styles.
+This additional stage improves context quality while reducing prompt length.
 
 ---
 
-# Why Cross-Encoder Reranking?
+# Evidence Selection
 
-Vector search retrieves passages independently.
+The reranked passages are converted into structured evidence before being passed to the language model.
 
-A Cross Encoder evaluates:
+Rather than sending every retrieved chunk directly to the LLM, the system extracts the information most relevant to the user's question.
 
-```
-(question, passage)
-```
+The prompt therefore contains:
 
-jointly.
+- relevant passages
+- page numbers
+- document metadata
+- supporting evidence
 
-This allows the reranker to understand whether the retrieved passage actually answers the question rather than merely discussing a related topic.
-
-Although reranking increases latency slightly, the improvement in passage relevance was considered worthwhile for an academic assistant where answer quality is more important than absolute speed.
-
----
-
-# Why Evidence Extraction?
-
-Many RAG implementations simply concatenate retrieved passages into a single prompt.
-
-This project instead performs an intermediate evidence extraction stage.
-
-Pipeline
-
-```
-Retrieved Passages
-
-↓
-
-Evidence Extraction
-
-↓
-
-Prompt Builder
-
-↓
-
-Local LLM
-```
-
-Advantages
-
-- Smaller prompts
-- Less duplicated information
-- Better factual grounding
-- Reduced hallucination
-- Easier citation generation
-
-This separation also makes the pipeline easier to extend with future retrieval methods.
+This encourages answers to remain grounded in retrieved sources.
 
 ---
 
-# Why Local Inference?
+# Prompt Construction
 
-Instead of relying on hosted APIs, answer generation is performed locally using Ollama.
+Prompt generation is separated from retrieval.
 
-Advantages
+The prompt builder combines:
 
-- Privacy
-- Offline capability
-- No inference costs
-- Easy experimentation with different models
-- No dependence on third-party APIs
+- user question
+- retrieved evidence
+- metadata
+- citation information
 
-Trade-offs
+into a structured prompt before generation.
 
-Advantages
-
-- User data remains local
-- Predictable running costs
-- Model selection is flexible
-
-Disadvantages
-
-- Slower than commercial hosted models
-- Higher hardware requirements
-- Model quality depends on local hardware
-
-For a research assistant designed to analyse private documents, these trade-offs were considered acceptable.
+Separating prompt construction from retrieval makes prompt engineering independent of retrieval logic and simplifies future experimentation.
 
 ---
 
-# Why Adaptive Routing?
+# Local Answer Generation
 
-The project supports two independent retrieval pipelines.
+Once evidence has been prepared, the prompt is forwarded to a local Ollama model.
 
-Document Retrieval
+The language model is responsible for:
+
+- synthesising retrieved evidence
+- generating fluent explanations
+- producing readable answers
+- preserving citations
+
+The retrieval system is responsible for factual grounding.
+
+The language model is responsible for explanation.
+
+Keeping these responsibilities separate makes the behaviour of the system considerably easier to understand and debug.
+
+---
+
+# Web Search Integration
+
+The project optionally supports live web retrieval using the Tavily Search API.
+
+When a query is classified as requiring external information:
 
 ```
 Question
 
 ↓
 
-Uploaded Paper
-
-↓
-
-Answer
-```
-
-Web Retrieval
-
-```
-Question
+Route Classifier
 
 ↓
 
@@ -912,145 +554,288 @@ Tavily Search
 
 ↓
 
-Answer
+Result Processing
+
+↓
+
+Evidence Selection
+
+↓
+
+Local LLM
 ```
 
-A lightweight routing stage determines which retrieval strategy should be used.
+Web search extends the assistant beyond uploaded documents while still allowing responses to be grounded in retrieved sources.
 
-This prevents unnecessary searches of uploaded documents while still allowing the assistant to answer broader questions about machine learning, AI, or recent research.
-
-Future versions may replace the current rule-based router with an LLM-powered routing model capable of reasoning about ambiguous questions.
+This makes it possible to answer questions about recent developments that would not exist within the uploaded paper.
 
 ---
+
+# Streamlit Interface
+
+The user interface was designed to expose retrieval behaviour rather than hiding it.
+
+Current functionality includes:
+
+- PDF upload
+- automatic indexing
+- configurable retrieval depth
+- adaptive routing
+- retrieval diagnostics
+- previous question history
+- downloadable answers
+- source inspection
+- citation display
+
+The interface also visualises retrieval progress, allowing users to observe which stage of the pipeline is currently executing.
+
+This transparency makes the application feel more responsive while providing insight into how answers are produced.
 
 # Evaluation
 
-The retrieval pipeline has been designed to support quantitative evaluation rather than relying solely on qualitative examples.
+The retrieval pipeline was designed so that individual components can be evaluated independently rather than treating answer quality as a single end-to-end metric.
 
-Planned evaluation metrics include:
+Because retrieval and generation are separated, improvements to one stage can be measured without modifying the remainder of the system.
+
+The evaluation framework focuses on three aspects:
+
+- retrieval quality
+- system performance
+- engineering trade-offs
+
+---
+
+## Retrieval Quality
+
+The retrieval pipeline can be evaluated using standard Information Retrieval metrics.
 
 | Metric | Purpose |
-|---------|----------|
-| Recall@k | Percentage of questions where the relevant passage appears in the retrieved set |
-| Mean Reciprocal Rank (MRR) | Measures how highly relevant passages are ranked |
-| Retrieval Latency | Time required to retrieve candidate passages |
-| Reranking Latency | Time spent by the Cross Encoder |
-| Total Response Time | End-to-end question answering latency |
-| Index Build Time | Time required to process uploaded PDFs |
-| Memory Usage | Storage required for embeddings and indexes |
+|----------|----------|
+| Recall@k | Measures whether relevant passages appear in the retrieved candidate set. |
+| Mean Reciprocal Rank (MRR) | Measures how highly relevant passages are ranked. |
+| Precision@k | Measures the proportion of retrieved passages that are relevant. |
+| Citation Accuracy | Measures whether generated claims reference the correct supporting pages. |
 
-These benchmarks will allow retrieval improvements to be measured objectively rather than relying on anecdotal examples.
+These metrics make it possible to compare retrieval strategies objectively rather than relying solely on subjective answer quality.
 
 ---
 
-# Planned Ablation Study
+## Performance
 
-One criticism of many Retrieval-Augmented Generation projects is that additional components are introduced without demonstrating their contribution.
+Typical system performance depends on
 
-To evaluate the effectiveness of each stage, future work will compare:
+- document length
+- chunk count
+- embedding model
+- reranking depth
+- local hardware
+- language model
 
-| Configuration | Expected Purpose |
-|--------------|------------------|
-| Baseline Vector Search | Reference implementation |
-| + Hybrid Retrieval | Improve recall |
-| + Cross Encoder | Improve ranking precision |
-| + Query Planning | Improve retrieval intent |
-| + Evidence Extraction | Reduce hallucination |
-| + Adaptive Routing | Improve retrieval selection |
+Performance measurements are currently collected manually during development and will be expanded into an automated benchmark suite in future releases.
 
-The goal is to quantify the contribution of each component rather than assuming additional complexity automatically improves performance.
+Example benchmark format:
+
+| Stage | Time |
+|---------|------|
+| PDF Parsing | — |
+| Chunking | — |
+| Embedding Generation | — |
+| FAISS Index Construction | — |
+| Hybrid Retrieval | — |
+| Cross Encoder Reranking | — |
+| Local LLM Generation | — |
+| Total Response Time | — |
+
+Replace the placeholders above with measured results once benchmarking has been completed.
 
 ---
 
-# Testing
+## Retrieval Configurations
 
-Automated tests currently cover core components including:
+One advantage of the modular architecture is that different retrieval strategies can be compared directly.
 
-- document chunking
-- retrieval behaviour
-- reranking pipeline
-- prompt generation
+For example,
+
+| Configuration | Recall@10 | MRR | Avg Retrieval Time |
+|---------------|-----------|-----|--------------------|
+| Dense Retrieval | — | — | — |
+| Dense + BM25 | — | — | — |
+| Hybrid + Reranker | — | — | — |
+
+This makes it possible to evaluate whether additional retrieval complexity produces measurable improvements.
+
+---
+
+# Engineering Trade-offs
+
+Modern RAG systems involve balancing retrieval quality, latency and implementation complexity.
+
+Several design decisions required explicit trade-offs.
+
+---
+
+## Hybrid Retrieval
+
+Advantages
+
+- Better retrieval coverage
+- Improved exact-match retrieval
+- Stronger semantic search
+- More robust across different document styles
+
+Disadvantages
+
+- More candidate passages
+- Additional retrieval latency
+- Increased implementation complexity
+
+---
+
+## Cross Encoder Reranking
+
+Advantages
+
+- Better passage ordering
+- Higher quality evidence
+- Reduced irrelevant context
+
+Disadvantages
+
+- Increased inference time
+- Additional model dependency
+
+For research-oriented question answering, improved retrieval quality was considered more valuable than minimal latency.
+
+---
+
+## Local Inference
+
+Advantages
+
+- Offline operation
+- Privacy
+- No API costs
+- Full control over model selection
+
+Disadvantages
+
+- Slower than commercial hosted APIs
+- Hardware dependent
+- Larger local resource requirements
+
+---
+
+## Rule-Based Retrieval Routing
+
+Advantages
+
+- Fast
+- Transparent
+- Easy to modify
+- Predictable behaviour
+
+Disadvantages
+
+- Limited flexibility
+- Difficult to generalise
+- Less robust than learned routing models
+
+Future versions may replace this component with an LLM-based router.
+
+---
+
+# Failure Modes
+
+Building the project highlighted several situations where retrieval quality becomes more difficult.
+
+Examples include
+
+- highly abbreviated technical papers
+- scanned PDFs
+- diagrams without accompanying text
+- tables containing important numerical information
+- questions requiring reasoning across multiple documents
+
+Although these limitations are common to many document-grounded systems, they highlight opportunities for future improvement.
+
+---
+
+# Lessons Learned
+
+Several engineering observations emerged during development.
+
+## Retrieval quality matters more than model size
+
+The largest improvements in answer quality came from improving retrieval rather than replacing the underlying language model.
+
+Introducing
+
+- hybrid retrieval
+- reranking
+- evidence-aware prompting
+
+generally produced larger improvements than switching language models.
+
+---
+
+## Better retrieval reduces hallucination
+
+Improving passage relevance consistently produced more reliable answers.
+
+In many cases, stronger retrieval had a greater effect on factual accuracy than prompt engineering alone.
+
+---
+
+## Modular architectures simplify experimentation
+
+Separating
+
 - indexing
-- parser reliability
+- retrieval
+- reranking
+- prompting
+- generation
 
-Future work will expand testing to include:
+made it possible to improve individual components without rewriting the entire system.
 
-- retrieval regression tests
-- citation verification
-- prompt consistency
-- latency benchmarking
-- end-to-end integration tests
-
-This will make future changes easier to validate while reducing the risk of retrieval regressions.
+This proved especially valuable as new retrieval methods were introduced during development.
 
 ---
 
-# Example Workflow
+## User experience matters
 
-```
-Upload PDF
+Retrieval systems often appear unresponsive while multiple models execute.
 
-↓
+Adding retrieval progress visualisation significantly improved perceived responsiveness while making the retrieval pipeline easier to understand.
 
-Parse document
+Although this feature does not improve answer quality directly, it substantially improves usability.
 
-↓
+---
 
-Chunk text
+## Building RAG systems is primarily a retrieval problem
 
-↓
+A recurring lesson throughout development was that modern Retrieval-Augmented Generation systems involve considerably more than prompt engineering.
 
-Generate embeddings
+Document parsing, chunking, indexing, retrieval, reranking and evidence selection collectively had a greater impact on final answer quality than prompt wording alone.
 
-↓
+This project therefore treats retrieval and generation as separate engineering problems rather than a single language modelling task.
 
-Build FAISS index
-
-↓
-
-Ask question
-
-↓
-
-Adaptive routing
-
-↓
-
-Retrieve candidates
-
-↓
-
-Cross Encoder reranking
-
-↓
-
-Evidence extraction
-
-↓
-
-Prompt construction
-
-↓
-
-Ollama
-
-↓
-
-Grounded answer with citations
-```
+---
 # Installation
 
 ## Prerequisites
 
-Before running the project, install the following software:
+Before running the project, install:
 
-- Python 3.11+
-- Ollama
+- Python 3.11 or later
 - Git
+- Ollama
+
+If you plan to use live web retrieval, you will also need a free Tavily API key.
 
 ---
 
-## 1. Clone the repository
+## 1. Clone the Repository
 
 ```bash
 git clone https://github.com/Brxckfuller/LLM-Research-Assistant.git
@@ -1059,7 +844,7 @@ cd LLM-Research-Assistant
 
 ---
 
-## 2. Create a virtual environment
+## 2. Create a Virtual Environment
 
 macOS / Linux
 
@@ -1077,7 +862,7 @@ python -m venv .venv
 
 ---
 
-## 3. Install dependencies
+## 3. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -1091,23 +876,23 @@ Download Ollama from
 
 https://ollama.com
 
-Start the Ollama server
+Start the local server
 
 ```bash
 ollama serve
 ```
 
-Download the model used by the project
+Pull the language model used by the project
 
 ```bash
-ollama pull llama3
+ollama pull llama3.1
 ```
 
-You may substitute another supported Ollama model if desired.
+Replace the model name if you are using a different local model.
 
 ---
 
-## 5. Configure Web Search (Optional)
+## 5. Configure Optional Web Search
 
 Live web retrieval uses the Tavily Search API.
 
@@ -1117,578 +902,348 @@ Create a `.env` file in the project root.
 TAVILY_API_KEY=your_api_key_here
 ```
 
-Create a free API key at
-
-https://tavily.com
-
-If no API key is provided, the application will continue to function using document retrieval only.
+Without this key the application still functions normally using document retrieval only.
 
 ---
 
-## 6. Launch the application
+## 6. Launch the Application
 
 ```bash
 streamlit run app/streamlit_app.py
 ```
 
-The Streamlit interface will automatically open in your browser.
+The Streamlit interface should automatically open in your browser.
 
 ---
 
-# Using the Application
+# Usage
 
-The assistant supports two complementary retrieval modes.
+## Upload a Paper
 
----
-
-## Document Mode
-
-Upload a research paper using the sidebar.
+Upload one or more research papers through the Streamlit interface.
 
 The application automatically:
 
-- parses the PDF
 - extracts text
+- chunks the document
 - generates embeddings
 - builds the FAISS index
-- stores metadata
+- stores document metadata
+- prepares lexical retrieval structures
 
-No manual indexing commands are required.
-
-Example questions
-
-```
-What is the main argument of this paper?
-
-How was the experiment conducted?
-
-What evidence supports the author's conclusion?
-
-Summarise the discussion section.
-
-What limitations does the paper identify?
-```
+No manual indexing is required.
 
 ---
 
-## Web Mode
+## Ask Questions
 
-Questions requiring general knowledge automatically trigger live web search.
+Once indexing has completed, questions can be asked in natural language.
 
 Examples
 
 ```
-What is Retrieval-Augmented Generation?
+What is the main argument of this paper?
 
-Who introduced the Transformer architecture?
+How was the experiment designed?
 
-What is the latest research on GraphRAG?
+Summarise the methodology.
 
-Explain Agentic AI.
+What evidence supports the conclusion?
 
-What are vector databases?
-```
-
-The assistant automatically determines whether the uploaded paper or the web is the most appropriate information source.
-
----
-
-## Adaptive Retrieval
-
-Some questions require both sources.
-
-Example
-
-```
-Compare this paper's retrieval pipeline with modern GraphRAG systems.
-```
-
-In these cases the retrieval planner combines:
-
-- uploaded document evidence
-- live web search
-
-before generating a final response.
-
----
-
-# Example Workflow
-
-```
-Upload Research Paper
-
-↓
-
-Automatic Index Construction
-
-↓
-
-Ask Question
-
-↓
-
-Adaptive Route Selection
-
-↓
-
-Retrieve Evidence
-
-↓
-
-Cross Encoder Reranking
-
-↓
-
-Evidence Extraction
-
-↓
-
-Prompt Construction
-
-↓
-
-Local LLM
-
-↓
-
-Grounded Answer
-```
-
----
-
-# Streamlit Interface
-
-The interface has been designed to make retrieval behaviour transparent rather than treating the language model as a black box.
-
-Current interface components include
-
-- PDF upload
-- automatic indexing
-- adaptive retrieval
-- progress visualisation
-- citation-aware answers
-- retrieval diagnostics
-- previous question history
-- downloadable responses
-
----
-
-## Document Retrieval
-
-When analysing uploaded papers, the interface displays the current retrieval stage.
-
-```
-Scanning paper
-
-↓
-
-Reranking passages
-
-↓
-
-Extracting evidence
-
-↓
-
-Building answer
-
-↓
-
-Generating response
-```
-
-This allows users to understand where computation time is being spent.
-
----
-
-## Web Retrieval
-
-When web search is selected, a dedicated progress interface displays:
-
-```
-Expanding query
-
-↓
-
-Searching the web
-
-↓
-
-Collecting results
-
-↓
-
-Filtering and reranking
-
-↓
-
-Extracting evidence
-
-↓
-
-Generating response
-```
-
-This provides feedback during external retrieval while making it clear that the assistant is consulting external information rather than relying solely on the uploaded document.
-
----
-
-# Screenshots
-
-*(Replace placeholders with actual screenshots.)*
-
----
-
-## Uploading a Paper
-
-```text
-images/upload-paper.png
-```
-
----
-
-## Document Retrieval
-
-```text
-images/document-loader.png
+What limitations do the authors discuss?
 ```
 
 ---
 
 ## Web Search
 
-```text
-images/web-loader.png
+Questions requiring external knowledge automatically trigger live retrieval.
+
+Examples
+
 ```
+What is Retrieval-Augmented Generation?
+
+What are the latest developments in GraphRAG?
+
+Explain Agentic Retrieval.
+
+Compare this paper with recent research.
+```
+
+The routing layer determines whether the uploaded document, live web search, or both should be used.
 
 ---
 
-## Generated Answer
+# Project Structure
 
-```text
-images/generated-answer.png
 ```
+LLM-Research-Assistant/
+
+├── app/
+│   └── streamlit_app.py
+│
+├── data/
+│   ├── indexes/
+│   ├── metadata/
+│   └── papers/
+│
+├── docs/
+│   └── images/
+│
+├── src/
+│   ├── adaptive_retrieval.py
+│   ├── chunker.py
+│   ├── embeddings.py
+│   ├── index_builder.py
+│   ├── ollama_client.py
+│   ├── pdf_loader.py
+│   ├── prompt_builder.py
+│   ├── qa_engine.py
+│   ├── query_planner.py
+│   ├── reranker.py
+│   ├── retriever.py
+│   ├── vector_store.py
+│   └── web_search.py
+│
+├── tests/
+│
+├── requirements.txt
+├── LICENSE
+└── README.md
+```
+
+The project is organised around independent retrieval components rather than a single monolithic pipeline.
+
+This makes it straightforward to replace individual retrieval strategies or language models without affecting the remainder of the application.
 
 ---
 
-## Retrieved Evidence
+# Testing
 
-```text
-images/retrieved-passages.png
+Core functionality is tested using **pytest**.
+
+Run the test suite with
+
+```bash
+pytest
 ```
 
----
+Current tests cover
 
-## Retrieval Details
+- document chunking
+- retrieval behaviour
+- indexing
+- parser reliability
+- reranking
 
-```text
-images/retrieval-details.png
-```
-
----
-
-# Performance
-
-Performance depends on
-
-- document length
-- embedding model
-- reranking depth
-- local hardware
-- Ollama model
-- web search latency
-
-Typical workflow
-
-```
-PDF Upload
-
-↓
-
-Index Creation
-
-↓
-
-Question
-
-↓
-
-Retrieval
-
-↓
-
-Reranking
-
-↓
-
-LLM Generation
-
-↓
-
-Answer
-```
-
-Future releases will include quantitative benchmarks for
-
-- Recall@k
-- Mean Reciprocal Rank
-- Retrieval latency
-- Indexing time
-- Memory usage
-- Total response latency
-
-These metrics will allow retrieval improvements to be measured objectively across future versions.
+As the project develops, testing will expand to include retrieval benchmarking and end-to-end integration tests.
 
 ---
 
 # Reproducibility
 
-The project has been designed so that another developer can reproduce the complete pipeline using only
+The project has been designed so that the complete retrieval pipeline can be reproduced using only
 
 - Python
 - Ollama
-- the supplied requirements.txt
-- a Tavily API key (optional)
+- the supplied requirements
+- a free Tavily API key (optional)
 
-No proprietary software or hosted inference services are required.
+No commercial APIs are required for document question answering.
 
-All document retrieval, indexing and answer generation can be performed locally.
+This allows experiments to be reproduced locally while keeping uploaded documents private.
 
+
+---
 # Current Limitations
 
-Although the system performs well for research paper question answering, it remains a prototype intended for experimentation rather than production deployment.
+Although the system performs well for document-grounded question answering, several limitations remain.
 
-Current limitations include:
+## OCR Support
 
-### OCR Support
+The ingestion pipeline assumes uploaded PDFs contain machine-readable text.
 
-The system assumes uploaded PDFs contain machine-readable text.
+Scanned documents and image-only PDFs currently require preprocessing before they can be indexed.
 
-Scanned documents and image-based PDFs cannot currently be processed without an OCR pipeline.
-
-Potential improvement:
+Potential future additions include:
 
 - Tesseract OCR
 - PaddleOCR
-- Nougat (academic PDF OCR)
+- Nougat for scientific documents
 
 ---
 
-### Metadata Filtering
+## Metadata Filtering
 
-Retrieval currently relies primarily on semantic similarity.
+Retrieval is currently based primarily on semantic similarity and lexical matching.
 
-Future versions could allow retrieval constrained by metadata such as
+Future versions could support filtering by metadata such as
 
 - author
 - publication year
-- conference
 - journal
+- conference
 - section
 - document type
 
-This would improve retrieval precision for larger document collections.
+This would become increasingly valuable when working with large document collections.
 
 ---
 
-### Multi-document Reasoning
+## Multi-document Reasoning
 
-Although multiple papers can be indexed, the assistant primarily retrieves evidence independently rather than reasoning jointly across multiple documents.
+Although multiple documents can be indexed simultaneously, retrieval is performed independently for each chunk.
 
-Future work could include
+The assistant does not yet perform explicit reasoning across multiple papers.
 
-- cross-paper synthesis
-- contradiction detection
+Possible future improvements include
+
 - literature review generation
-- automatic consensus extraction
+- contradiction detection
+- consensus extraction
+- cross-document summarisation
 
 ---
 
-### Benchmarking
+## Structured Content
 
-The current implementation has not yet undergone large-scale quantitative evaluation.
+The current pipeline focuses primarily on textual content.
 
-Future benchmarking will measure
+Tables, equations and figures are not explicitly represented during retrieval.
 
-- Recall@k
-- Mean Reciprocal Rank
-- Retrieval Precision
-- Citation Accuracy
-- Response Latency
-- Memory Usage
-
-to better understand the contribution of each retrieval component.
-
----
-
-### LLM Routing
-
-The adaptive router currently uses rule-based routing between uploaded documents and live web search.
-
-A more sophisticated implementation could use a lightweight LLM classifier capable of reasoning about ambiguous questions rather than relying on keyword detection.
-
----
-
-### Web Retrieval
-
-Web search currently retrieves relevant pages before generating an answer.
-
-Future improvements could include
-
-- automatic source credibility estimation
-- duplicate source removal
-- query rewriting using an LLM
-- multi-stage web retrieval
-- retrieval across academic APIs such as Semantic Scholar
+Supporting structured document elements would improve question answering for scientific literature where important information is frequently presented outside the main body text.
 
 ---
 
 # Future Work
 
-Several extensions are planned.
+Several improvements are planned as the project evolves.
 
-## GraphRAG
+## Retrieval Evaluation
 
-Replace flat chunk retrieval with graph-based retrieval capable of reasoning over relationships between concepts.
+The highest priority is implementing an automated evaluation pipeline.
 
-Potential technologies
+This will measure
 
-- Neo4j
-- NetworkX
-- GraphRAG
+- Recall@k
+- Precision@k
+- Mean Reciprocal Rank
+- retrieval latency
+- citation accuracy
 
----
-
-## Agentic Retrieval
-
-Instead of retrieving once, future versions may allow an LLM agent to perform iterative retrieval.
-
-Example
-
-Question
-
-↓
-
-Retrieve evidence
-
-↓
-
-Recognise missing information
-
-↓
-
-Search again
-
-↓
-
-Generate improved answer
-
-This approach more closely resembles modern Deep Research systems.
+allowing retrieval strategies to be compared objectively.
 
 ---
 
-## Automatic Evaluation
+## Metadata-Aware Retrieval
 
-Develop a benchmark suite capable of automatically measuring retrieval quality against annotated question-answer datasets.
+Future retrieval will incorporate document metadata alongside semantic similarity.
 
-This would enable regression testing as retrieval components evolve.
+Potential filters include
 
----
+- publication year
+- author
+- journal
+- document section
+- keywords
 
-## Multimodal Documents
-
-Support figures, tables and equations rather than relying solely on extracted text.
-
-Possible approaches
-
-- OCR
-- Vision-Language Models
-- Table extraction
-- Figure caption grounding
+This would improve retrieval precision for larger collections.
 
 ---
 
-## Citation Verification
+## Improved Routing
 
-Automatically verify that every generated claim is supported by retrieved evidence.
+The current retrieval router uses lightweight rule-based classification.
 
-Potential additions include
-
-- citation confidence
-- unsupported claim detection
-- evidence highlighting
+A future version may replace this with a learned routing model capable of reasoning about more ambiguous queries.
 
 ---
 
-## Model Flexibility
+## Better Citation Support
 
-Support multiple local and hosted models.
+Future work includes highlighting the exact supporting spans used to generate each claim.
 
-Examples
+This would improve transparency while making responses easier to verify against the original document.
 
-- Llama 3
-- Mistral
-- Gemma
-- Qwen
-- OpenAI
-- Anthropic
+---
 
-without requiring changes to the retrieval pipeline.
+## OCR Integration
+
+Supporting scanned PDFs would significantly broaden the range of documents the assistant can analyse.
 
 ---
 
 # Lessons Learned
 
-This project reinforced several observations about modern Retrieval-Augmented Generation systems.
+Developing this project reinforced several observations about Retrieval-Augmented Generation systems.
 
-The largest gains in answer quality often came from improving retrieval rather than changing the language model itself.
+## Retrieval quality matters more than model size
+
+The largest improvements came from strengthening retrieval rather than replacing the underlying language model.
 
 Adding
 
+- hybrid retrieval
 - reranking
-- evidence extraction
-- adaptive retrieval
-- query planning
+- evidence-aware prompting
 
-generally produced larger improvements than replacing the underlying LLM.
-
-The project also demonstrated the importance of treating retrieval and generation as separate engineering problems.
-
-A stronger language model cannot compensate for poor retrieval, while high-quality retrieval significantly improves grounded responses even when using relatively small local models.
-
-Finally, building the system highlighted that modern LLM applications involve considerably more than prompt engineering.
-
-Document parsing, indexing, retrieval, ranking, evidence selection and user experience all contribute meaningfully to overall system performance.
+had a larger effect on answer quality than switching between comparable local language models.
 
 ---
 
-# Repository Roadmap
+## Better retrieval reduces hallucination
 
-Future releases will focus on the following areas.
+The reliability of generated answers depended primarily on the quality of retrieved evidence.
 
-- [ ] Retrieval benchmarking
-- [ ] GraphRAG
-- [ ] OCR support
-- [ ] Agentic retrieval
-- [ ] Citation verification
-- [ ] Integration testing
-- [ ] Multimodal document support
-- [ ] Automatic evaluation suite
-- [ ] Academic search connectors
-- [ ] Retrieval visualisation dashboard
+When irrelevant passages entered the prompt, answer quality consistently declined regardless of the language model.
 
 ---
 
-# Contributing
+## Modular systems are easier to improve
 
-Suggestions, bug reports and pull requests are welcome.
+Separating
 
-If you discover a bug or have an idea for improving retrieval quality, please open an issue describing
+- indexing
+- retrieval
+- reranking
+- prompting
+- generation
 
-- the problem
-- reproduction steps
-- expected behaviour
-- proposed improvement
+allowed individual components to evolve independently.
+
+This proved especially valuable as new retrieval strategies were introduced during development.
+
+---
+
+## User experience matters
+
+Although retrieval quality is critical, presentation also affects usability.
+
+Visualising retrieval progress and exposing supporting evidence made the system feel substantially more transparent than simply displaying a final answer.
+
+---
+
+# Why This Project?
+
+Many Retrieval-Augmented Generation demonstrations focus primarily on connecting a vector database to a hosted language model.
+
+The goal of this project was different.
+
+Rather than producing the smallest possible implementation, I wanted to understand and build the engineering components that determine retrieval quality.
+
+This led to implementing:
+
+- modular retrieval components
+- hybrid search
+- reranking
+- evidence-aware prompting
+- retrieval diagnostics
+- local inference
+- adaptive routing
+- citation-aware responses
+
+The resulting system is intended as a practical exploration of how modern document-grounded AI assistants are engineered rather than simply wrapping an LLM with a vector database.
 
 ---
 
@@ -1696,54 +1251,24 @@ If you discover a bug or have an idea for improving retrieval quality, please op
 
 This project is released under the MIT License.
 
----
-
-# About
-
-This project was developed as part of my AI engineering portfolio.
-
-Its primary purpose is to explore the engineering challenges involved in building modern Retrieval-Augmented Generation systems rather than simply consuming hosted LLM APIs.
-
-Particular emphasis was placed on
-
-- semantic retrieval
-- adaptive routing
-- local language models
-- evidence-grounded prompting
-- retrieval quality
-- software architecture
-- reproducible experimentation
-
-As the project evolves, new retrieval methods, evaluation pipelines and reasoning strategies will continue to be added.
+See the `LICENSE` file for details.
 
 ---
 
-# Contact
+# About the Author
 
-**Brock Fuller**
+Developed by **Brock Fuller** as part of an AI engineering portfolio focused on Retrieval-Augmented Generation, information retrieval, and applied machine learning.
 
-GitHub
+The project reflects a strong interest in building reliable, transparent AI systems that combine modern language models with principled retrieval pipelines.
+
+GitHub:
 
 https://github.com/Brxckfuller
 
-LinkedIn
+LinkedIn:
 
-www.linkedin.com/in/brock-fuller-8497593a0 
+www.linkedin.com/in/brock-fuller-8497593a0
 
 ---
 
-## Acknowledgements
 
-This project builds upon the work of the open-source machine learning community.
-
-Particular thanks to the developers of
-
-- Streamlit
-- Ollama
-- FAISS
-- Sentence Transformers
-- PyMuPDF
-- Hugging Face
-- Tavily
-
-whose tools made this project possible.
