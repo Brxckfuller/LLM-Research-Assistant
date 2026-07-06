@@ -257,22 +257,20 @@ Using local models allows experiments to be reproduced consistently without depe
 
 ---
 
-# Models Used
-
-The current implementation uses the following models and libraries.
+# Models and Libraries Used
 
 | Component | Model / Library | Purpose |
 |-----------|-----------------|---------|
-| Embedding Model | `sentence-transformers/all-MiniLM-L6-v2`* | Dense semantic embeddings |
-| Vector Database | FAISS | Approximate nearest neighbour search |
-| Lexical Retrieval | BM25 | Keyword retrieval |
-| Reranker | `cross-encoder/ms-marco-MiniLM-L-6-v2`* | Passage reranking |
-| Local LLM | Ollama (Llama 3.1)* | Answer generation |
-| PDF Processing | PyMuPDF | Document parsing |
-| Web Search | Tavily API | Optional external retrieval |
-| Interface | Streamlit | User interface |
-
-> *Replace the model names above with the exact models used I was using in the implementation later.
+| Embedding Model | `all-MiniLM-L6-v2` via Sentence Transformers | Dense semantic embeddings |
+| Vector Index | FAISS `IndexFlatIP` | Inner-product similarity search over normalised embeddings |
+| Lexical Retrieval | `rank-bm25` | BM25 keyword retrieval |
+| Reranker | `cross-encoder/ms-marco-MiniLM-L-6-v2` | Cross-encoder passage reranking |
+| Inference Engine | Ollama | Local LLM serving |
+| Language Model | `llama3.1:8b` | Answer generation |
+| PDF Processing | PyMuPDF | Research paper parsing |
+| Web Search | Tavily API | Optional live web retrieval |
+| Interface | Streamlit | Web application |
+| Persistence | joblib | Saving chunk metadata and retrieval objects |
 
 ---
 
