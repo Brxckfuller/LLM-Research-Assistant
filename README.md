@@ -1,4 +1,4 @@
-# 📄 LLM Research Paper Assistant
+# 📄 LLM Research Assistant
 
 > A local-first Retrieval-Augmented Generation (RAG) system that answers questions about research papers using adaptive retrieval, dense vector search, passage reranking, evidence extraction, and optional live web search.
 
