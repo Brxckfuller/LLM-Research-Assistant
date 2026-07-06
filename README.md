@@ -1248,11 +1248,9 @@ The resulting system is intended as a practical exploration of how modern docume
 ---
 
 
-# About the Author
+# Author
 
 Developed by **Brock Fuller** as part of an AI engineering portfolio focused on Retrieval-Augmented Generation, information retrieval, and applied machine learning.
-
-The project reflects a strong interest in building reliable, transparent AI systems that combine modern language models with principled retrieval pipelines.
 
 GitHub:
 
