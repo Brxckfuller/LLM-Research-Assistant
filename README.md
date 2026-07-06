@@ -274,7 +274,7 @@ Using local models allows experiments to be reproduced consistently without depe
 
 ---
 
-# Repository Structure
+# Project Structure
 
 ```
 
@@ -970,50 +970,6 @@ Compare this paper with recent research.
 ```
 
 The routing layer determines whether the uploaded document, live web search, or both should be used.
-
----
-
-# Project Structure
-
-```
-LLM-Research-Assistant/
-
-├── app/
-│   └── streamlit_app.py
-│
-├── data/
-│   ├── indexes/
-│   ├── metadata/
-│   └── papers/
-│
-├── docs/
-│   └── images/
-│
-├── src/
-│   ├── adaptive_retrieval.py
-│   ├── chunker.py
-│   ├── embeddings.py
-│   ├── index_builder.py
-│   ├── ollama_client.py
-│   ├── pdf_loader.py
-│   ├── prompt_builder.py
-│   ├── qa_engine.py
-│   ├── query_planner.py
-│   ├── reranker.py
-│   ├── retriever.py
-│   ├── vector_store.py
-│   └── web_search.py
-│
-├── tests/
-│
-├── requirements.txt
-├── LICENSE
-└── README.md
-```
-
-The project is organised around independent retrieval components rather than a single monolithic pipeline.
-
-This makes it straightforward to replace individual retrieval strategies or language models without affecting the remainder of the application.
 
 ---
 
