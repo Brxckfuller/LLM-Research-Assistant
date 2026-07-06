@@ -9,3 +9,8 @@ pytest
 streamlit
 requests
 streamlit-searchbox
+tavily-python
+beautifulsoup4
+requests
+python-dotenv
+

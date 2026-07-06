@@ -2,11 +2,14 @@ import sys
 import time
 from pathlib import Path
 
+
 import streamlit as st
 import streamlit.components.v1 as components
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
+
+from src.web_search import choose_route, search_web
 
 from src.index_builder import build_index
 from src.retriever import Retriever
@@ -353,6 +356,198 @@ def render_progress_panel(title, steps, completed_count, current_status):
     """
 
     components.html(html, height=330)
+
+
+def render_web_progress_panel(completed_count, current_status):
+    steps = [
+        "Expanding query",
+        "Searching web",
+        "Collecting results",
+        "Filtering & reranking",
+        "Extracting evidence",
+        "Building answer",
+        "Generating response",
+    ]
+
+    step_html = ""
+
+    for index, step in enumerate(steps):
+        if index < completed_count:
+            dot_class = "web-dot done"
+            dot_text = "✓"
+        elif index == completed_count:
+            dot_class = "web-dot active"
+            dot_text = ""
+        else:
+            dot_class = "web-dot"
+            dot_text = ""
+
+        step_html += f"""
+        <div class="web-step">
+            <div class="{dot_class}">{dot_text}</div>
+            <div>{step}</div>
+        </div>
+        """
+
+    html = f"""
+    <style>
+    .web-card {{
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 28px 32px;
+        background: #ffffff;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        animation: fadeIn 0.35s ease-in-out;
+    }}
+
+    .web-header {{
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        margin-bottom: 34px;
+    }}
+
+    .web-icon {{
+        width: 54px;
+        height: 54px;
+        border-radius: 14px;
+        background: #f5f5f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+    }}
+
+    .web-title {{
+        font-size: 22px;
+        font-weight: 750;
+        color: #111827;
+        margin-bottom: 6px;
+    }}
+
+    .web-subtitle {{
+        font-size: 15px;
+        color: #4b5563;
+    }}
+
+    .web-steps {{
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        position: relative;
+        margin-bottom: 30px;
+    }}
+
+    .web-steps::before {{
+        content: "";
+        position: absolute;
+        top: 15px;
+        left: 6%;
+        right: 6%;
+        height: 3px;
+        background: #d1d5db;
+        z-index: 0;
+    }}
+
+    .web-step {{
+        text-align: center;
+        font-size: 12px;
+        color: #111827;
+        line-height: 1.35;
+        position: relative;
+        z-index: 1;
+    }}
+
+    .web-dot {{
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 3px solid #d1d5db;
+        background: white;
+        margin: 0 auto 10px auto;
+        box-sizing: border-box;
+    }}
+
+    .web-dot.done {{
+        background: #ff4b4b;
+        border-color: #ff4b4b;
+        color: white;
+        font-size: 15px;
+        line-height: 20px;
+        font-weight: 700;
+    }}
+
+    .web-dot.active {{
+        border-color: #ff4b4b;
+        animation: pulseWebDot 1.2s infinite ease-in-out;
+    }}
+
+    @keyframes pulseWebDot {{
+        0% {{ transform: scale(1); opacity: 0.75; }}
+        50% {{ transform: scale(1.14); opacity: 1; }}
+        100% {{ transform: scale(1); opacity: 0.75; }}
+    }}
+
+    .web-progress-track {{
+        height: 7px;
+        width: 100%;
+        background: #e5e7eb;
+        border-radius: 999px;
+        overflow: hidden;
+        margin-bottom: 28px;
+    }}
+
+    .web-progress-fill {{
+        height: 100%;
+        background: #ff4b4b;
+        border-radius: 999px;
+        animation: webLoad 2.2s infinite ease-in-out;
+    }}
+
+    @keyframes webLoad {{
+        0% {{ width: 24%; }}
+        50% {{ width: 58%; }}
+        100% {{ width: 24%; }}
+    }}
+
+    .web-status {{
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #fafafa;
+        border-radius: 14px;
+        padding: 18px 20px;
+        font-size: 15px;
+        color: #374151;
+    }}
+    </style>
+
+    <div class="web-card">
+        <div class="web-header">
+            <div class="web-icon">🌐</div>
+            <div>
+                <div class="web-title">Searching the web</div>
+                <div class="web-subtitle">Gathering and analysing information from the web. This may take a few moments.</div>
+            </div>
+        </div>
+
+        <div class="web-steps">
+            {step_html}
+        </div>
+
+        <div class="web-progress-track">
+            <div class="web-progress-fill"></div>
+        </div>
+
+        <div class="web-status">
+            🔎 {current_status}
+        </div>
+    </div>
+    """
+
+    components.html(html, height=330)
+
+
 
 def find_pdf_path(document_name: str) -> Path | None:
     possible_paths = [
@@ -1008,59 +1203,135 @@ if st.button(
     elif not selected_document:
         st.warning("Please choose a paper.")
 
+
     else:
-        steps = [
-            "Scanning paper",
-            "Reranking passages",
-            "Extracting evidence",
-            "Building answer",
-            "Generating response",
-        ]
 
         progress_placeholder = st.empty()
 
-        with progress_placeholder.container():
-            render_progress_panel(
-                title="Analysing paper",
-                steps=steps,
-                completed_count=0,
-                current_status="Scanning the selected paper",
-            )
+        route = choose_route(question)
+
+        if route == "WEB":
+
+            with progress_placeholder.container():
+
+                render_web_progress_panel(
+
+                    completed_count=0,
+
+                    current_status="Expanding your question into related search queries..."
+
+                )
+
+
+        else:
+
+            steps = [
+
+                "Scanning paper",
+
+                "Reranking passages",
+
+                "Extracting evidence",
+
+                "Building answer",
+
+                "Generating response",
+
+            ]
+
+            with progress_placeholder.container():
+
+                render_progress_panel(
+
+                    title="Analysing paper",
+
+                    steps=steps,
+
+                    completed_count=0,
+
+                    current_status="Scanning the selected paper",
+
+                )
 
         retrieval_start = time.time()
 
-        retrieval_data = adaptive_retrieve(
-            question=question,
-            document_name=selected_document,
-            top_k=num_chunks,
-            raw_k=RAW_RETRIEVAL_K,
-        )
+        route = choose_route(question)
 
-        results = retrieval_data["results"]
-        raw_results = retrieval_data["raw_results"]
-        question_type = retrieval_data["question_type"]
-        coverage_score = retrieval_data["coverage_score"]
+        if route == "CHROMA":
+            retrieval_data = adaptive_retrieve(
+                question=question,
+                document_name=selected_document,
+                top_k=num_chunks,
+                raw_k=RAW_RETRIEVAL_K,
+            )
+
+            results = retrieval_data["results"]
+            raw_results = retrieval_data["raw_results"]
+            question_type = retrieval_data["question_type"]
+            coverage_score = retrieval_data["coverage_score"]
+
+        elif route == "WEB":
+            results = search_web(question, max_results=num_chunks)
+            raw_results = results
+            question_type = "web_search"
+            coverage_score = 80
+
+        elif route == "BOTH":
+            retrieval_data = adaptive_retrieve(
+                question=question,
+                document_name=selected_document,
+                top_k=num_chunks,
+                raw_k=RAW_RETRIEVAL_K,
+            )
+
+            pdf_results = retrieval_data["results"]
+            web_results = search_web(question, max_results=5)
+
+            results = pdf_results + web_results
+            raw_results = retrieval_data["raw_results"] + web_results
+            question_type = retrieval_data["question_type"]
+            coverage_score = retrieval_data["coverage_score"]
 
         retrieval_time = time.time() - retrieval_start
 
         with progress_placeholder.container():
-            render_progress_panel(
-                title="Analysing paper",
-                steps=steps,
-                completed_count=2,
-                current_status="Extracting evidence from the strongest passages",
-            )
+
+            if route == "WEB":
+
+                render_web_progress_panel(
+                    completed_count=4,
+                    current_status="Extracting evidence from the highest-quality sources..."
+                )
+
+            else:
+
+                render_progress_panel(
+                    title="Analysing paper",
+                    steps=steps,
+                    completed_count=2,
+                    current_status="Extracting evidence from the strongest passages",
+                )
 
         evidence_prompt = build_evidence_extraction_prompt(question, results)
         extracted_evidence = collect_llm_output(evidence_prompt)
 
         with progress_placeholder.container():
-            render_progress_panel(
-                title="Analysing paper",
-                steps=steps,
-                completed_count=3,
-                current_status="Building a grounded answer from extracted evidence",
-            )
+
+            if route == "WEB":
+
+                render_web_progress_panel(
+                    completed_count=5,
+                    current_status="Building a grounded answer..."
+                )
+
+            else:
+
+                render_progress_panel(
+                    title="Analysing paper",
+                    steps=steps,
+                    completed_count=3,
+                    current_status="Building a grounded answer from extracted evidence",
+                )
 
         final_prompt = build_final_answer_prompt(
             question=question,
@@ -1068,12 +1339,22 @@ if st.button(
         )
 
         with progress_placeholder.container():
-            render_progress_panel(
-                title="Analysing paper",
-                steps=steps,
-                completed_count=4,
-                current_status="Generating response with the local model",
-            )
+
+            if route == "WEB":
+
+                render_web_progress_panel(
+                    completed_count=6,
+                    current_status="Generating final response..."
+                )
+
+            else:
+
+                render_progress_panel(
+                    title="Analysing paper",
+                    steps=steps,
+                    completed_count=4,
+                    current_status="Generating response with the local model",
+                )
 
         st.subheader("Answer")
 
@@ -1088,7 +1369,7 @@ if st.button(
         confidence = coverage_score
 
         result_data = {
-            "mode": "Single paper",
+            "mode": route,
             "question": question,
             "answer": answer,
             "results": results,
