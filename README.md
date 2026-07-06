@@ -270,7 +270,7 @@ Using local models allows experiments to be reproduced consistently without depe
 | PDF Processing | PyMuPDF | Research paper parsing |
 | Web Search | Tavily API | Optional live web retrieval |
 | Interface | Streamlit | Web application |
-| Persistence | joblib | Saving chunk metadata and retrieval objects |
+| Storage | joblib | Saving chunk metadata and retrieval objects |
 
 ---
 
