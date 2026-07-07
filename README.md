@@ -138,7 +138,7 @@ The overall system follows a modular Retrieval-Augmented Generation pipeline.
 
 ```
 
-Each stage is implemented independently within the codebase, making the retrieval pipeline significantly easier to inspect and modify than monolithic RAG implementations.
+Each stage is implemented independently within the codebase, making the retrieval pipeline significantly easier to inspect and modify than other RAG implementations.
 
 This modular design also makes experimentation straightforward. Individual retrieval methods, embedding models, rerankers, or language models can be replaced without rewriting the remainder of the system.
 
