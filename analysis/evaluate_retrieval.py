@@ -7,10 +7,16 @@ sys.path.append(str(PROJECT_ROOT))
 
 from src.adaptive_retrieval import adaptive_retrieve
 
-
 EVAL_FILE = PROJECT_ROOT / "analysis" / "retrieval_eval_questions.csv"
+OUTPUT_FILE = PROJECT_ROOT / "analysis" / "retrieval_eval_results.csv"
+INDEX_DIR = PROJECT_ROOT / "data" / "indexes"
+
 TOP_K = 10
 RAW_K = 32
+
+
+def available_documents():
+    return {p.stem for p in INDEX_DIR.glob("*.faiss")}
 
 
 def parse_pages(value):
@@ -25,6 +31,10 @@ def reciprocal_rank(retrieved_pages, expected_pages):
 
 
 def main():
+    if not EVAL_FILE.exists():
+        raise FileNotFoundError(f"Could not find {EVAL_FILE}")
+
+    valid_docs = available_documents()
     df = pd.read_csv(EVAL_FILE)
 
     rows = []
@@ -33,6 +43,11 @@ def main():
         question = row["question"]
         document = row["document"]
         expected_pages = parse_pages(row["expected_pages"])
+
+        if document not in valid_docs:
+            print(f"Skipping: '{document}' index not found.")
+            print(f"Available documents include: {sorted(valid_docs)}")
+            continue
 
         retrieval_data = adaptive_retrieve(
             question=question,
@@ -50,7 +65,6 @@ def main():
         ]
 
         retrieved_set = set(retrieved_pages)
-
         hits = retrieved_set.intersection(expected_pages)
 
         recall_at_10 = 1.0 if hits else 0.0
@@ -61,8 +75,8 @@ def main():
             {
                 "question": question,
                 "document": document,
-                "expected_pages": sorted(expected_pages),
-                "retrieved_pages": retrieved_pages,
+                "expected_pages": ",".join(map(str, sorted(expected_pages))),
+                "retrieved_pages": ",".join(map(str, retrieved_pages)),
                 "hit": bool(hits),
                 "recall_at_10": recall_at_10,
                 "precision_at_10": precision_at_10,
@@ -71,9 +85,7 @@ def main():
         )
 
     results_df = pd.DataFrame(rows)
-
-    output_path = PROJECT_ROOT / "analysis" / "retrieval_eval_results.csv"
-    results_df.to_csv(output_path, index=False)
+    results_df.to_csv(OUTPUT_FILE, index=False)
 
     print("\nRetrieval Evaluation")
     print("=" * 60)
@@ -83,7 +95,7 @@ def main():
     print(f"MRR: {results_df['mrr'].mean():.3f}")
 
     print("\nSaved results to:")
-    print(output_path)
+    print(OUTPUT_FILE)
 
 
 if __name__ == "__main__":

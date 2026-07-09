@@ -1,7 +1,21 @@
 question,document,expected_pages,retrieved_pages,hit,recall_at_10,precision_at_10,mrr
-What is the imitation game?,turing,[1],"[3, 7, 21, 1, 10, 13, 8, 18, 11, 17]",True,1.0,0.1,0.25
-What is Lady Lovelace's objection?,turing,[8],"[15, 14, 18, 9, 2, 3, 10, 12, 7, 1]",False,0.0,0.0,0.0
-What does Turing say about thinking machines?,turing,"[1, 2]","[1, 3, 8, 11, 2, 18, 14, 9, 13, 15]",True,1.0,0.2,1.0
-What does Chalmers define as the hard problem of consciousness?,chalmers1995,"[1, 2]","[2, 3, 1, 4, 6, 7, 16, 5, 10, 8]",True,1.0,0.2,1.0
-What is Dennett's view on the hard problem of consciousness?,Dennett_hard,"[1, 2]","[1, 6, 4, 7, 3, 2, 5, 1, 1, 4]",True,1.0,0.2,1.0
-What are some criticisms of John Searle's Chinese room argument?,John_Searle_Chinese_Room_1980,"[1, 2]","[8, 3, 6, 2, 4, 1, 5, 7, 6, 3]",True,1.0,0.2,0.25
+What is the imitation game?,turing,1,"3,7,21,1,10,13,8,18,11,17",True,1.0,0.1,0.25
+What is Lady Lovelace's objection?,turing,8,"15,14,18,9,2,3,10,12,7,1",False,0.0,0.0,0.0
+What does Turing say about thinking machines?,turing,"1,2","1,3,8,11,2,18,14,9,13,15",True,1.0,0.2,1.0
+Can machines think according to Turing?,turing,1,"1,8,3,14,11,9,10,2,13,16",True,1.0,0.1,1.0
+What objections to machine intelligence does Turing discuss?,turing,"7,8","2,3,15,11,18,1,10,14,12,13",False,0.0,0.0,0.0
+How does Turing respond to the mathematical objection?,turing,9,"2,10,18,3,15,9,11,12,1,14",True,1.0,0.1,0.16666666666666666
+What is Turing's prediction about intelligent machines?,turing,10,"7,1,16,21,14,8,10,11,15,13",True,1.0,0.1,0.14285714285714285
+How does Turing describe digital computers?,turing,3,"4,8,5,7,6,13,3,16,10,1",True,1.0,0.1,0.14285714285714285
+What is Dennett's view on the hard problem of consciousness?,Dennett_hard,"1,2","1,6,4,7,3,2,5,1,1,4",True,1.0,0.2,1.0
+Why does Dennett reject the hard problem?,Dennett_hard,"2,3","1,6,4,2,5,7,3,1,4,6",True,1.0,0.2,0.25
+What are easy problems according to Dennett?,Dennett_hard,2,"1,3,6,4,7,2,5,1,3,1",True,1.0,0.1,0.16666666666666666
+How does Dennett define consciousness?,Dennett_hard,"3,4","2,3,1,4,7,6,5,4,4,1",True,1.0,0.2,0.5
+What does Chalmers define as the hard problem of consciousness?,chalmers1995,"1,2","2,3,1,4,6,7,16,5,10,8",True,1.0,0.2,1.0
+How does Chalmers distinguish easy and hard problems?,chalmers1995,"2,3","1,2,3,4,7,5,6,10,18,16",True,1.0,0.2,0.5
+What is the explanatory gap according to Chalmers?,chalmers1995,"4,5","4,12,10,5,8,7,18,16,17,6",True,1.0,0.2,1.0
+What does Chalmers propose as a solution?,chalmers1995,"12,13","8,6,17,7,18,16,12,2,1,5",True,1.0,0.1,0.14285714285714285
+What are some criticisms of John Searle's Chinese room argument?,John_Searle_Chinese_Room_1980,"1,2","8,3,6,2,4,1,5,7,6,3",True,1.0,0.2,0.25
+What is the systems reply to the Chinese Room?,John_Searle_Chinese_Room_1980,"2,3","3,5,4,8,6,7,2,1,3,3",True,1.0,0.2,1.0
+Why does Searle argue syntax is insufficient for semantics?,John_Searle_Chinese_Room_1980,"1,2","7,6,2,4,3,1,8,5,6,6",True,1.0,0.2,0.3333333333333333
+What did Benjamin Libet discover about voluntary action?,Benjamin Libet,"1,2","8,7,1,3,5,4,6,2,11,10",True,1.0,0.2,0.3333333333333333
