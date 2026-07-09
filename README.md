@@ -1134,55 +1134,6 @@ This would improve transparency while making responses easier to verify against 
 
 Supporting scanned PDFs would significantly broaden the range of documents the assistant can analyse.
 
----
-
-# Lessons Learned
-
-Developing this project reinforced several observations about Retrieval-Augmented Generation systems.
-
-## Retrieval quality matters more than model size
-
-The largest improvements came from strengthening retrieval rather than replacing the underlying language model.
-
-Adding
-
-- hybrid retrieval
-- reranking
-- evidence-aware prompting
-
-had a larger effect on answer quality than switching between comparable local language models.
-
----
-
-## Better retrieval reduces hallucination
-
-The reliability of generated answers depended primarily on the quality of retrieved evidence.
-
-When irrelevant passages entered the prompt, answer quality consistently declined regardless of the language model.
-
----
-
-## Modular systems are easier to improve
-
-Separating
-
-- indexing
-- retrieval
-- reranking
-- prompting
-- generation
-
-allowed individual components to evolve independently.
-
-This proved especially valuable as new retrieval strategies were introduced during development.
-
----
-
-## User experience matters
-
-Although retrieval quality is critical, presentation also affects usability.
-
-Visualising retrieval progress and exposing supporting evidence made the system feel substantially more transparent than simply displaying a final answer.
 
 ---
 
