@@ -670,8 +670,6 @@ A retrieval was considered successful if at least one expected supporting page a
 
 The hybrid retrieval pipeline achieved a Recall@10 of **0.900**, indicating that relevant evidence was retrieved for 90% of evaluation queries. A Precision@10 of **0.145** reflects the challenging nature of dense document retrieval, where only a subset of retrieved passages are expected to be directly relevant. The Mean Reciprocal Rank (MRR) of **0.459** indicates that relevant passages typically appeared near the top of the ranked retrieval results.
 
-Future work will compare the current Hybrid + Reranker pipeline against dense-only and dense + BM25 retrieval configurations to quantify the contribution of each retrieval component.
-
 ---
 
 # Engineering Trade-offs
