@@ -2,15 +2,15 @@ import sys
 import time
 from pathlib import Path
 
-
 import streamlit as st
 import streamlit.components.v1 as components
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
 
+from src.logger import log_query
+from src.timer import timed_stage
 from src.web_search import choose_route, search_web
-
 from src.index_builder import build_index
 from src.retriever import Retriever
 from src.reranker import rerank_results
@@ -894,6 +894,7 @@ def collect_llm_output(prompt):
 
 
 def show_sources_and_details(result):
+
     with st.expander("Sources", expanded=False):
         for i, chunk in enumerate(result["results"], start=1):
             page = chunk.get("page", "unknown")
@@ -939,7 +940,10 @@ def show_sources_and_details(result):
 """
                     )
 
+    # ← Notice this is OUTSIDE the Sources expander
     with st.expander("Retrieval Details", expanded=False):
+        timings = result.get("timings", {})
+
         st.markdown(
             f"""
 | Metric | Value |
@@ -950,9 +954,10 @@ def show_sources_and_details(result):
 | Documents Used | {", ".join(result["documents"])} |
 | Relevant Pages | {", ".join(map(str, result["pages"]))} |
 | Retrieval Confidence | {result["confidence"]}% |
-| Retrieval Time | {result["retrieval_time"]:.2f}s |
-| LLM Generation Time | {result["llm_time"]:.2f}s |
-| Total Time | {result["total_time"]:.2f}s |
+| Retrieval | {timings.get("retrieval", result.get("retrieval_time", 0)):.2f}s |
+| Evidence Extraction | {timings.get("evidence_extraction", 0):.2f}s |
+| Answer Generation | {timings.get("answer_generation", result.get("llm_time", 0)):.2f}s |
+| Total | {result["total_time"]:.2f}s |
 """
         )
 
@@ -1253,46 +1258,51 @@ if st.button(
 
                 )
 
-        retrieval_start = time.time()
+        timings = {}
 
-        route = choose_route(question)
+        with timed_stage("retrieval", timings):
 
-        if route == "CHROMA":
-            retrieval_data = adaptive_retrieve(
-                question=question,
-                document_name=selected_document,
-                top_k=num_chunks,
-                raw_k=RAW_RETRIEVAL_K,
-            )
+            route = choose_route(question)
 
-            results = retrieval_data["results"]
-            raw_results = retrieval_data["raw_results"]
-            question_type = retrieval_data["question_type"]
-            coverage_score = retrieval_data["coverage_score"]
+            if route == "CHROMA":
 
-        elif route == "WEB":
-            results = search_web(question, max_results=num_chunks)
-            raw_results = results
-            question_type = "web_search"
-            coverage_score = 80
+                retrieval_data = adaptive_retrieve(
+                    question=question,
+                    document_name=selected_document,
+                    top_k=num_chunks,
+                    raw_k=RAW_RETRIEVAL_K,
+                )
 
-        elif route == "BOTH":
-            retrieval_data = adaptive_retrieve(
-                question=question,
-                document_name=selected_document,
-                top_k=num_chunks,
-                raw_k=RAW_RETRIEVAL_K,
-            )
+                results = retrieval_data["results"]
+                raw_results = retrieval_data["raw_results"]
+                question_type = retrieval_data["question_type"]
+                coverage_score = retrieval_data["coverage_score"]
 
-            pdf_results = retrieval_data["results"]
-            web_results = search_web(question, max_results=5)
+            elif route == "WEB":
 
-            results = pdf_results + web_results
-            raw_results = retrieval_data["raw_results"] + web_results
-            question_type = retrieval_data["question_type"]
-            coverage_score = retrieval_data["coverage_score"]
+                results = search_web(question, max_results=num_chunks)
+                raw_results = results
+                question_type = "web_search"
+                coverage_score = 80
 
-        retrieval_time = time.time() - retrieval_start
+            elif route == "BOTH":
+
+                retrieval_data = adaptive_retrieve(
+                    question=question,
+                    document_name=selected_document,
+                    top_k=num_chunks,
+                    raw_k=RAW_RETRIEVAL_K,
+                )
+
+                pdf_results = retrieval_data["results"]
+                web_results = search_web(question, max_results=5)
+
+                results = pdf_results + web_results
+                raw_results = retrieval_data["raw_results"] + web_results
+                question_type = retrieval_data["question_type"]
+                coverage_score = retrieval_data["coverage_score"]
+
+        retrieval_time = timings["retrieval"]
 
         with progress_placeholder.container():
 
@@ -1312,8 +1322,14 @@ if st.button(
                     current_status="Extracting evidence from the strongest passages",
                 )
 
-        evidence_prompt = build_evidence_extraction_prompt(question, results)
-        extracted_evidence = collect_llm_output(evidence_prompt)
+        with timed_stage("evidence_extraction", timings):
+
+            evidence_prompt = build_evidence_extraction_prompt(
+                question,
+                results
+            )
+
+            extracted_evidence = collect_llm_output(evidence_prompt)
 
         with progress_placeholder.container():
 
@@ -1358,10 +1374,12 @@ if st.button(
 
         st.subheader("Answer")
 
-        llm_start = time.time()
-        answer = stream_answer(final_prompt)
-        llm_time = time.time() - llm_start
-        total_time = retrieval_time + llm_time
+        with timed_stage("answer_generation", timings):
+
+            answer = stream_answer(final_prompt)
+
+        llm_time = timings["answer_generation"]
+        total_time = sum(timings.values())
 
         progress_placeholder.empty()
 
@@ -1370,6 +1388,7 @@ if st.button(
 
         result_data = {
             "mode": route,
+            "timings": timings,
             "question": question,
             "answer": answer,
             "results": results,
@@ -1384,9 +1403,11 @@ if st.button(
             "total_time": total_time,
         }
 
-        st.session_state["question_history"].insert(0, result_data)
-        show_sources_and_details(result_data)
+        log_query(result_data)
 
+        st.session_state["question_history"].insert(0, result_data)
+
+        show_sources_and_details(result_data)
 
 selected_idx = st.session_state.get("selected_history_index")
 
