@@ -49,6 +49,16 @@ def choose_route(question: str) -> str:
     question_lower = question.lower()
 
     web_keywords = [
+        "web",
+        "internet",
+        "online",
+        "according to the web",
+        "from the web",
+        "on the web",
+        "web search",
+        "search the web",
+        "google",
+        "according to google",
         "latest",
         "current",
         "today",
@@ -85,6 +95,9 @@ def choose_route(question: str) -> str:
         "according to this document",
         "in the paper",
         "in the pdf",
+        "from the paper",
+        "from this paper",
+        "in this paper",
     ]
 
     needs_web = any(keyword in question_lower for keyword in web_keywords)
@@ -93,9 +106,8 @@ def choose_route(question: str) -> str:
     if needs_web and needs_docs:
         return "BOTH"
 
-    elif needs_web:
+    if needs_web:
         return "WEB"
 
-    else:
-        return "CHROMA"
+    return "CHROMA"
 
