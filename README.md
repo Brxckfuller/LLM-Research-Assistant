@@ -659,17 +659,18 @@ These results indicate that document retrieval generally requires more retrieval
 
 One advantage of the modular architecture is that different retrieval strategies can be compared directly.
 
-For example,
 
-| Configuration | Recall@10 | Precision@10 | MRR |
-|---|---:|---:|---:|
-| Hybrid + reranker | 0.833 | 0.150 | 0.583 |
+| Configuration | Recall@10 | Precision@10 | MRR | Avg Retrieval Time |
+|--------------|----------:|-------------:|----:|-------------------:|
+| Hybrid + Reranker | 0.900 | 0.145 | 0.459 | 11.92 s |
 
-This makes it possible to evaluate whether additional retrieval complexity produces measurable improvements.
+The retrieval evaluation was conducted on a manually constructed benchmark consisting of 20 questions spanning multiple uploaded research papers.
 
-This initial retrieval evaluation was run on 6 manually labelled questions across the indexed papers. A retrieval was counted as successful when at least one expected supporting page appeared in the top 10 retrieved passages.
+A retrieval was considered successful if at least one expected supporting page appeared within the top 10 retrieved passages (Recall@10). Precision@10 measures the proportion of retrieved passages that were relevant, while Mean Reciprocal Rank (MRR) measures how highly the first relevant passage was ranked.
 
-Dense-only and dense+BM25 ablations are planned as future evaluation work.
+The hybrid retrieval pipeline achieved a Recall@10 of **0.900**, indicating that relevant evidence was retrieved for 90% of evaluation queries. A Precision@10 of **0.145** reflects the challenging nature of dense document retrieval, where only a subset of retrieved passages are expected to be directly relevant. The Mean Reciprocal Rank (MRR) of **0.459** indicates that relevant passages typically appeared near the top of the ranked retrieval results.
+
+Future work will compare the current Hybrid + Reranker pipeline against dense-only and dense + BM25 retrieval configurations to quantify the contribution of each retrieval component.
 
 ---
 
