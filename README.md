@@ -661,13 +661,15 @@ One advantage of the modular architecture is that different retrieval strategies
 
 For example,
 
-| Configuration | Recall@10 | MRR | Avg Retrieval Time |
-|---------------|-----------|-----|--------------------|
-| Dense Retrieval | — | — | — |
-| Dense + BM25 | — | — | — |
-| Hybrid + Reranker | — | — | — |
+| Configuration | Recall@10 | Precision@10 | MRR |
+|---|---:|---:|---:|
+| Hybrid + reranker | 0.833 | 0.150 | 0.583 |
 
 This makes it possible to evaluate whether additional retrieval complexity produces measurable improvements.
+
+This initial retrieval evaluation was run on 6 manually labelled questions across the indexed papers. A retrieval was counted as successful when at least one expected supporting page appeared in the top 10 retrieved passages.
+
+Dense-only and dense+BM25 ablations are planned as future evaluation work.
 
 ---
 
