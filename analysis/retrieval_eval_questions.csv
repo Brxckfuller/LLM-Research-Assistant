@@ -1,0 +1,7 @@
+question,document,expected_pages
+What is the imitation game?,turing,"1"
+What is Lady Lovelace's objection?,turing,"8"
+What does Turing say about thinking machines?,turing,"1,2"
+What does Chalmers define as the hard problem of consciousness?,chalmers1995,"1,2"
+What is Dennett's view on the hard problem of consciousness?,Dennett_hard,"1,2"
+What are some criticisms of John Searle's Chinese room argument?,John_Searle_Chinese_Room_1980,"1,2"
