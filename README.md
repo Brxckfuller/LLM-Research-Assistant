@@ -276,40 +276,53 @@ Using local models allows experiments to be reproduced consistently without depe
 
 # Project Structure
 
-```
 
+```text
 LLM-Research-Assistant/
-
+│
 ├── app/
-│ └── streamlit_app.py
+│   └── streamlit_app.py
+│
+├── analysis/
+│   ├── evaluate_retrieval.py
+│   ├── retrieval_eval_questions.csv
+│   ├── retrieval_eval_results.csv
+│   └── summarise_benchmark.py
 │
 ├── data/
-│ ├── documents/
-│ ├── faiss_index/
-│ └── processed/
+│   ├── documents/
+│   ├── indexes/
+│   └── processed/
 │
 ├── docs/
-│ └── images/
+│   └── images/
+│
+├── logs/
+│   └── benchmark.csv
 │
 ├── src/
-│ ├── adaptive_retrieval.py
-│ ├── chunker.py
-│ ├── embeddings.py
-│ ├── index_builder.py
-│ ├── ollama_client.py
-│ ├── pdf_loader.py
-│ ├── qa_engine.py
-│ ├── query_planner.py
-│ ├── reranker.py
-│ ├── retriever.py
-│ ├── vector_store.py
-│ └── web_search.py
+│   ├── adaptive_retrieval.py
+│   ├── check_tavily.py
+│   ├── chunker.py
+│   ├── embeddings.py
+│   ├── index_builder.py
+│   ├── logger.py
+│   ├── ollama_client.py
+│   ├── pdf_loader.py
+│   ├── qa_engine.py
+│   ├── query_planner.py
+│   ├── reranker.py
+│   ├── retriever.py
+│   ├── timer.py
+│   ├── vector_store.py
+│   └── web_search.py
 │
 ├── tests/
 │
 ├── requirements.txt
+├── Makefile
+├── LICENSE
 └── README.md
-
 ```
 
 The repository follows a modular architecture in which each stage of the retrieval pipeline is implemented independently.
