@@ -631,20 +631,27 @@ Typical system performance depends on
 
 Performance measurements are currently collected manually during development and will be expanded into an automated benchmark suite in future releases.
 
-Example benchmark format:
+The benchmark was collected over **30 representative queries** consisting of both document retrieval and web-search requests.
 
-| Stage | Time |
-|---------|------|
-| PDF Parsing | — |
-| Chunking | — |
-| Embedding Generation | — |
-| FAISS Index Construction | — |
-| Hybrid Retrieval | — |
-| Cross Encoder Reranking | — |
-| Local LLM Generation | — |
-| Total Response Time | — |
+### Overall latency
 
-Replace the placeholders above with measured results once benchmarking has been completed.
+| Stage | Mean | Median | Min | Max | Std Dev |
+|---|---:|---:|---:|---:|---:|
+| Retrieval | 11.92s | 8.41s | 3.43s | 44.10s | 8.61s |
+| Evidence extraction | 70.13s | 66.46s | 36.42s | 136.28s | 23.03s |
+| Answer generation | 31.42s | 30.67s | 12.98s | 44.52s | 8.45s |
+| Total response time | 113.47s | 110.01s | 68.57s | 187.16s | 30.30s |
+
+Evidence extraction is the dominant contributor to total latency because the local LLM must process and summarise multiple retrieved passages before generating the final response. Retrieval itself contributes a relatively small proportion of the overall response time.
+
+### Average latency by retrieval mode
+
+| Mode | Runs | Avg Retrieval | Avg Evidence | Avg Generation | Avg Total |
+|---|---:|---:|---:|---:|---:|
+| CHROMA | 21 | 13.72s | 75.34s | 31.34s | 120.40s |
+| WEB | 9 | 7.72s | 57.98s | 31.60s | 97.30s |
+
+These results indicate that document retrieval generally requires more retrieval and evidence processing time than web search, primarily because larger sets of retrieved passages must be reranked and synthesised.
 
 ---
 
