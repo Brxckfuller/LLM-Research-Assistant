@@ -17,6 +17,7 @@ from src.reranker import rerank_results
 from src.qa_engine import (
     build_evidence_extraction_prompt,
     build_final_answer_prompt,
+    build_fast_answer_prompt,
 )
 from src.ollama_client import stream_ollama
 
@@ -78,57 +79,42 @@ def retrieval_confidence(results):
 
 
 def inject_css():
-    st.markdown(
-        """
-        <style>
-        [data-testid="stSidebar"] {
-            width: 240px !important;
-            min-width: 240px !important;
-        }
-
-        [data-testid="stSidebarContent"] {
-            width: 240px !important;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
+    """Presentation-only styling; retrieval and generation logic is unchanged."""
     st.markdown("""
     <style>
-
-    /* Smaller section headings */
-
-    h1 {
-        font-size: 2.0rem !important;
-        margin-top: 0.8rem;
-        margin-bottom: 0.6rem;
-    }
-
-    h2 {
-        font-size: 1.6rem !important;
-        margin-top: 0.8rem;
-        margin-bottom: 0.5rem;
-    }
-
-    h3 {
-        font-size: 1.3rem !important;
-    }
-
-    /* Paragraphs */
-
-    p {
-        font-size: 17px !important;
-        line-height: 1.7;
-    }
-
-    /* Bullet lists */
-
-    li {
-        font-size: 17px !important;
-        line-height: 1.7;
-    }
-
+    :root { --ink:#17243a; --muted:#69788b; --accent:#3b65c4; --line:#e4eaf1; }
+    .stApp, [data-testid="stAppViewContainer"] { background:#f7f9fc; color:var(--ink); }
+    [data-testid="stHeader"] { background:rgba(247,249,252,.88); }
+    [data-testid="stMainBlockContainer"] { max-width:1080px; padding-top:2.1rem; padding-bottom:5rem; }
+    [data-testid="stSidebar"] { width:265px !important; min-width:265px !important; background:#ffffff; border-right:1px solid var(--line); }
+    [data-testid="stSidebarContent"] { width:265px !important; padding-top:1.4rem; }
+    h1,h2,h3 { color:var(--ink); letter-spacing:-.035em; font-weight:700; }
+    h1 { font-size:2.15rem !important; line-height:1.18; }
+    h2 { font-size:1.48rem !important; }
+    h3 { font-size:1.17rem !important; }
+    p, li { line-height:1.65; }
+    .app-eyebrow { font-size:.72rem; letter-spacing:.15em; text-transform:uppercase; font-weight:750; color:var(--accent); margin-bottom:12px; }
+    .app-hero { padding:25px 32px 27px; background:#ffffff; border:1px solid var(--line); border-radius:18px; margin-bottom:24px; box-shadow:0 6px 25px rgba(24,45,80,.035); }
+    .app-hero h1 { margin:0 0 10px !important; }
+    .app-hero p { margin:0; max-width:700px; color:var(--muted); font-size:1rem; }
+    .section-kicker { color:var(--accent); font-size:.72rem; letter-spacing:.13em; text-transform:uppercase; font-weight:750; margin:8px 0 3px; }
+    .sidebar-brand { font-weight:750; font-size:1.1rem; letter-spacing:-.03em; color:var(--ink); margin:0 0 4px; }
+    .sidebar-description { color:var(--muted); font-size:.81rem; line-height:1.5; margin-bottom:22px; }
+    .sidebar-title { font-size:.75rem; text-transform:uppercase; letter-spacing:.12em; font-weight:750; color:var(--muted); margin:18px 0 12px; }
+    .date-heading { color:var(--muted); font-size:.75rem; font-weight:650; margin:15px 0 7px; }
+    div[data-testid="stButton"] > button { border-radius:10px; border-color:var(--line); transition:background .15s,border-color .15s; }
+    div[data-testid="stButton"] > button:hover { border-color:#9db4e8; background:#f1f5ff; color:var(--ink); }
+    div[data-testid="stButton"] > button[kind="primary"] { background:var(--accent); border-color:var(--accent); color:white; min-height:2.9rem; font-weight:650; }
+    div[data-testid="stButton"] > button[kind="primary"]:hover { background:#2e53a6; color:white; }
+    [data-testid="stFileUploader"], [data-testid="stExpander"], [data-testid="stTextArea"] textarea,
+    [data-testid="stSelectbox"] > div > div { border-radius:12px !important; }
+    [data-testid="stFileUploader"] { background:#ffffff; border:1px solid var(--line); padding:9px 14px; border-radius:14px; }
+    [data-testid="stExpander"] { background:#ffffff; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+    [data-testid="stTextArea"] textarea { background:#ffffff; border-color:#dce4ee; font-size:.98rem; }
+    [data-testid="stTextArea"] textarea:focus { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+    [data-testid="stAlert"] { border-radius:12px; }
+    hr { border-color:var(--line) !important; }
+    @media (max-width:800px) { [data-testid="stMainBlockContainer"] { padding-top:1rem; } .app-hero { padding:20px; } }
     </style>
     """, unsafe_allow_html=True)
 
@@ -971,7 +957,7 @@ def show_result(result):
 st.set_page_config(
     page_title="LLM Research Paper Assistant",
     page_icon="📄",
-    layout="centered",
+    layout="wide",
 )
 
 inject_css()
@@ -1023,49 +1009,8 @@ def group_questions_by_date(history):
 
 
 with st.sidebar:
-
-    st.markdown(
-        """
-        <style>
-
-        .sidebar-title{
-            font-size:24px;
-            font-weight:700;
-            margin-bottom:18px;
-        }
-
-        .date-heading{
-            color:#777;
-            font-size:13px;
-            font-weight:600;
-            margin-top:18px;
-            margin-bottom:6px;
-        }
-
-        div[data-testid="stButton"] > button{
-            width:100%;
-            text-align:left;
-            border-radius:10px;
-            border:1px solid #e6e6e6;
-            padding:10px;
-            margin-bottom:6px;
-            transition:0.2s;
-        }
-
-        div[data-testid="stButton"] > button:hover{
-            border-color:#ff4b4b;
-            background:#fff5f5;
-        }
-
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        '<div class="sidebar-title">Previous Questions</div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown('<div class="sidebar-brand">◈ Research Assistant</div><div class="sidebar-description">Your local document intelligence workspace</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-title">Question history</div>', unsafe_allow_html=True)
 
     history = st.session_state["question_history"]
 
@@ -1104,11 +1049,17 @@ with st.sidebar:
         st.session_state["selected_history_index"] = None
         st.rerun()
 
-st.title("📄 LLM Research Paper Assistant")
+st.markdown("""
+<div class="app-hero">
+  <div class="app-eyebrow">RESEARCH WORKSPACE &nbsp; / &nbsp; LOCAL AI</div>
+  <h1>Research Paper Assistant.</h1>
+  <p>Explore your papers with hybrid retrieval, intelligent reranking, and grounded answers powered by a local language model.</p>
+</div>
+""", unsafe_allow_html=True)
 
-st.write(
-    "Upload one PDF, build a document index, and ask rigorous questions using hybrid retrieval, reranking, evidence extraction, and local LLM generation."
-)
+st.markdown('<div class="section-kicker">01 / YOUR LIBRARY</div>', unsafe_allow_html=True)
+st.subheader("Add a research paper")
+st.caption("Upload a PDF to build a searchable document index.")
 
 uploaded_file = st.file_uploader(
     "Upload a PDF",
@@ -1138,7 +1089,8 @@ if uploaded_file is not None:
 
 st.divider()
 
-st.header("Ask a Question")
+st.markdown('<div class="section-kicker">02 / EXPLORE</div>', unsafe_allow_html=True)
+st.header("Ask your research a question")
 
 if not st.session_state["documents"]:
     st.warning("Upload a PDF and build the document index before asking questions.")
@@ -1186,6 +1138,8 @@ question = st.text_area(
     height=95,
 )
 
+fast_mode = st.checkbox("Fast mode (single LLM call)", value=True, help="Faster experimental path; compare citation quality with the original two-stage mode.")
+
 num_chunks = st.slider(
     "Number of source chunks",
     min_value=6,
@@ -1195,7 +1149,7 @@ num_chunks = st.slider(
 )
 
 if st.button(
-    "Generate Answer",
+    "Generate answer →",
     key="search_button",
     type="primary",
     use_container_width=True,
@@ -1322,14 +1276,17 @@ if st.button(
                     current_status="Extracting evidence from the strongest passages",
                 )
 
-        with timed_stage("evidence_extraction", timings):
-
-            evidence_prompt = build_evidence_extraction_prompt(
-                question,
-                results
+        if fast_mode:
+            timings["evidence_extraction"] = 0.0
+            final_prompt = build_fast_answer_prompt(question, results)
+        else:
+            with timed_stage("evidence_extraction", timings):
+                evidence_prompt = build_evidence_extraction_prompt(question, results)
+                extracted_evidence = collect_llm_output(evidence_prompt)
+            final_prompt = build_final_answer_prompt(
+                question=question,
+                extracted_evidence=extracted_evidence,
             )
-
-            extracted_evidence = collect_llm_output(evidence_prompt)
 
         with progress_placeholder.container():
 
@@ -1349,10 +1306,6 @@ if st.button(
                     current_status="Building a grounded answer from extracted evidence",
                 )
 
-        final_prompt = build_final_answer_prompt(
-            question=question,
-            extracted_evidence=extracted_evidence,
-        )
 
         with progress_placeholder.container():
 
@@ -1372,7 +1325,8 @@ if st.button(
                     current_status="Generating response with the local model",
                 )
 
-        st.subheader("Answer")
+        if not fast_mode:
+            st.subheader("Answer")
 
         with timed_stage("answer_generation", timings):
 
@@ -1387,7 +1341,7 @@ if st.button(
         confidence = coverage_score
 
         result_data = {
-            "mode": route,
+            "mode": f"{route} / {'FAST' if fast_mode else 'TWO-STAGE'}",
             "timings": timings,
             "question": question,
             "answer": answer,
@@ -1419,4 +1373,6 @@ if selected_idx is not None and st.session_state["question_history"]:
     st.markdown(f"### Question: {selected_result['question']}")
 
     show_result(selected_result)
+
+
 

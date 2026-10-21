@@ -39,58 +39,52 @@ def looks_like_section_heading(text):
 
 
 def chunk_text(pages: List[dict], max_chunk_chars=1600, min_chunk_chars=250):
+    """Chunk within pages without discarding short paragraphs or page tails."""
     chunks = []
-    chunk_id = 0
     current_section = "General"
 
     for page in pages:
         page_number = page["page"]
         text = page["text"]
-
-        rough_parts = re.split(r"(?<=[.!?])\s+", text)
+        # Preserve paragraph boundaries when possible; split long paragraphs.
+        paragraphs = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
+        if not paragraphs:
+            paragraphs = [text.strip()] if text.strip() else []
+        parts = []
+        for paragraph in paragraphs:
+            if len(paragraph) <= max_chunk_chars:
+                parts.append(paragraph)
+            else:
+                sentences = split_into_sentences(paragraph)
+                for sentence in sentences:
+                    if len(sentence) <= max_chunk_chars:
+                        parts.append(sentence)
+                    else:
+                        parts.extend(sentence[i:i + max_chunk_chars] for i in range(0, len(sentence), max_chunk_chars))
 
         current = ""
-
-        for part in rough_parts:
-            part = part.strip()
-            if not part:
-                continue
-
+        for part in parts:
             if looks_like_section_heading(part):
                 current_section = part[:120]
-
-            if len(current) + len(part) <= max_chunk_chars:
-                current += " " + part
-            else:
-                if len(current.strip()) >= min_chunk_chars:
-                    chunks.append(
-                        {
-                            "chunk_id": chunk_id,
-                            "page": page_number,
-                            "text": current.strip(),
-                            "section": current_section,
-                            "author": page.get("author", "Unknown author"),
-                            "title": page.get("title", "Unknown title"),
-                            "document": page.get("document", "Unknown document"),
-                        }
-                    )
-                    chunk_id += 1
-
-                current = part
-
-        if len(current.strip()) >= min_chunk_chars:
-            chunks.append(
-                {
-                    "chunk_id": chunk_id,
-                    "page": page_number,
-                    "text": current.strip(),
-                    "section": current_section,
+            if current and len(current) + len(part) + 1 > max_chunk_chars:
+                chunks.append({
+                    "chunk_id": len(chunks), "page": page_number,
+                    "text": current, "section": current_section,
                     "author": page.get("author", "Unknown author"),
                     "title": page.get("title", "Unknown title"),
                     "document": page.get("document", "Unknown document"),
-                }
-            )
-            chunk_id += 1
+                })
+                current = ""
+            current = f"{current}\n{part}".strip() if current else part
+
+        if current:
+            chunks.append({
+                "chunk_id": len(chunks), "page": page_number,
+                "text": current, "section": current_section,
+                "author": page.get("author", "Unknown author"),
+                "title": page.get("title", "Unknown title"),
+                "document": page.get("document", "Unknown document"),
+            })
 
     return chunks
 

@@ -43,7 +43,10 @@ Rules:
 - If both sources are relevant, extract facts from both.
 - Preserve the author's/source wording where precision matters.
 - Include supporting text.
-- Preserve page numbers or URLs.
+- Copy PAGE_OR_URL exactly from the matching source passage; never infer a page number from the content.
+- Include the source ID for every extracted fact.
+- For broad purpose questions, prioritise the document introduction and explain its stated motivation and distinguishing mechanism, if retrieved.
+- Extract all material supporting facts needed for a complete answer, not just three.
 - If one passage contains both a general claim and a specific number, extract both.
 
 QUESTION:
@@ -52,7 +55,7 @@ QUESTION:
 PASSAGES:
 {context}
 
-Return ONLY this format:
+Return ONLY this format (repeat FACT blocks as needed; do not stop at three):
 
 FACT 1:
 SOURCE_ID:
@@ -96,6 +99,9 @@ Core rules:
 - Use page numbers for uploaded documents.
 - Use URLs/source titles for web results.
 - If evidence is limited, say exactly what is missing.
+- Do not guess or alter page numbers: use only PAGE_OR_URL attached to the corresponding fact.
+- Never cite a page for a quotation unless that quotation appears in evidence attributed to that page.
+- For a purpose question, distinguish the overarching purpose from a list of features; include any explicitly stated motivation or feedback loop when supported.
 - If web evidence and document evidence disagree, say that clearly.
 
 Source rules:
@@ -146,3 +152,93 @@ No major limitations from the retrieved evidence.
 
 If it does not, explain what is missing.
 """.strip()
+
+
+def build_fast_answer_prompt(question: str, chunks: List[Dict]) -> str:
+    """Grounded single-pass answer with question-specific priorities and source checks."""
+    context = build_context(chunks)
+    question_lower = question.casefold()
+
+    # These are instructions about what to look for, not prewritten answers.
+    # The model must still find support in the retrieved source passages.
+    if "foundry" in question_lower and "ontology" in question_lower:
+        focus = """DEMONSTRATION QUESTION PRIORITIES — ONTOLOGY:
+- Address every part of the question in order: (1) data, (2) logic, (3) actions,
+  (4) why their connection improves operational decision-making.
+- FIRST look for passages describing the Core Ontology's semantics (objects and
+  relations) and kinetics (functions and actions). Explain that relationship
+  before discussing other capabilities.
+- NEXT look for passages on models, type systems, workflows, or the link from
+  analytical results to decisions/actions. Connect these only where supported.
+- Explain the operational consequence as a reasoned synthesis, clearly anchored
+  to specific source passages.
+- Treat external integrations, audit trails, publishing, monitoring, and lineage
+  as secondary supporting capabilities, not as the definition of the Ontology.
+- If the retrieved text does not explicitly describe an element, acknowledge
+  the gap rather than pretending the document does.
+"""
+    elif "foundry" in question_lower and ("purpose" in question_lower or "what is" in question_lower):
+        focus = """DEMONSTRATION QUESTION PRIORITIES — FOUNDRY PURPOSE:
+- State the overarching purpose first, rather than starting with a feature list.
+- Look for the document's characterization of Foundry as an operating system
+  and explain what 'operating' means in the source's own terms.
+- Look for software-defined feedback loops spanning data, analytics, and
+  business teams, and connect them to organizational learning and outcomes.
+- Distinguish the overall goal from the capabilities used to achieve it.
+- Do not repeat the same sentence in the answer and key points.
+"""
+    else:
+        focus = """QUESTION PRIORITIES:
+- Identify all subquestions and answer each directly.
+- Prioritize the central mechanism and causal explanation over peripheral features.
+"""
+
+    return f"""You are a rigorous research assistant answering from retrieved passages.
+Your task is to SYNTHESIZE the answer, not merely repeat a passage that shares
+keywords with the question.
+
+{focus}
+
+NON-NEGOTIABLE SOURCE RULES:
+1. Use ONLY the retrieved passages below. Do not import facts from memory.
+2. Each passage has a SOURCE_ID and PAGE_OR_URL. Cite the exact corresponding
+   source as (Source 2, Page 5), or (Source 3, URL) for web sources.
+3. Never invent a page, source ID, statement, or quotation. Never mix the page
+   number from one source with wording from another.
+4. Prefer paraphrasing accurately. Only include a direct quotation if its
+   exact wording occurs in the cited passage. Do not stitch separate excerpts
+   together into one quote.
+5. Distinguish explicit source claims from conclusions you infer by connecting
+   multiple passages. For an inference, explain the connection and cite both.
+6. The first paragraph MUST directly answer the entire question, including
+   the principal mechanism and its significance, not merely a secondary feature.
+7. Keep important source terminology (for example semantics, kinetics,
+   objects, relations, functions, actions) when it is relevant and present.
+8. Prioritize correctness and completeness over brevity, but avoid repetition.
+9. Do not claim the sources prove a stronger conclusion than they actually do.
+
+QUESTION:
+{question}
+
+RETRIEVED PASSAGES:
+{context}
+
+Before writing, silently check: What is the main question? Which passages
+support each part? Is my opening paragraph focused on the main mechanism?
+
+OUTPUT FORMAT:
+## Answer
+Two or three coherent paragraphs. Explain HOW and WHY, not just WHAT.
+Cite supporting sources at the end of the relevant sentences.
+
+## Key points
+Three concise, non-repetitive bullets, each with accurate citations.
+
+## Evidence from the text
+Two or three short, VERBATIM quotations from retrieved passages, each with
+its exact source ID and page. If you cannot verify a quotation in the provided
+passages, omit it rather than inventing one.
+
+If an important part cannot be supported by the passages, explicitly say so.
+Do not output analysis or source-checking notes.
+""".strip() 

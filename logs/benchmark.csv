@@ -32,3 +32,15 @@ timestamp,mode,question,retrieval,evidence,generation,total,raw_sources,reranked
 2026-07-09T21:08:06,CHROMA,Who is this paper written by?,8.157603416999336,52.75802941597067,20.038081499980763,80.95371433295077,29,10,62
 2026-07-09T21:15:42,CHROMA,Jerry Fodor provides a critique of Searle in this paper. Outline the key elements of his criticism.,8.653183959017042,93.34141616697889,37.58121604198823,139.57581616798416,43,10,56
 2026-07-09T21:17:18,CHROMA,Jerry Fodor provides a critique of Searle in this paper. Outline the key elements of his criticism.,5.9632371659972705,44.039959167013876,34.49740704201395,84.5006033750251,57,10,64
+2026-10-20T19:03:25,CHROMA,What is the purpose of Palantir Foundry,8.996287999907508,98.53182845795527,34.53951149992645,142.06762795778923,10,10,80
+2026-10-20T19:16:28,CHROMA,What is the purpose of foundry?,9.457116208970547,106.0587788328994,35.22344195889309,150.73933700076304,11,10,80
+2026-10-20T19:31:42,CHROMA / FAST,What is the purpose of foundry?,9.262357417028397,0.0,57.73389162495732,66.99624904198572,11,10,80
+2026-10-20T19:34:45,CHROMA / FAST,"How does Palantir Foundry's Ontology connect data, logic and actions, and why is this useful for operational decision-making?",1.0412539998069406,0.0,71.16446691681631,72.20572091662325,11,10,47
+2026-10-20T19:43:06,CHROMA / FAST,What is the purpose of foundry?,9.260005709016696,0.0,79.02289662510157,88.28290233411826,11,10,80
+2026-10-20T19:45:53,CHROMA / FAST,"How does Palantir Foundry's Ontology connect data, logic and actions, and why is this useful for operational decision-making?",0.9922554579097778,0.0,93.1914280410856,94.18368349899538,11,10,47
+2026-10-20T19:48:58,CHROMA / FAST,"How does Palantir Foundry's Ontology represent an organization's operational world, and what roles do objects, relationships, functions and actions play within it?",1.563396042212844,0.0,83.57513870904222,85.13853475125507,11,10,38
+2026-10-20T19:50:57,CHROMA / FAST,"According to Palantir's Foundry whitepaper, what are the core components of Foundry's Ontology, and what additional capabilities does it support?",1.7771310422103852,0.0,75.3586627501063,77.13579379231669,11,10,55
+2026-10-20T20:52:00,CHROMA / FAST,What is this paper about?,19.83834012504667,0.0,142.21206391602755,162.05040404107422,26,10,62
+2026-10-20T20:58:24,CHROMA / FAST,What is the overall conclusion?,6.854916582815349,0.0,142.69498312519863,149.54989970801398,26,10,62
+2026-10-20T21:23:00,CHROMA / FAST,What is the purpose of Foundry?,0.43669837503694,0.0,82.1996697911527,82.63636816618964,11,10,80
+2026-10-20T21:25:40,CHROMA / FAST,"What are the core components of Foundry’s Ontology, and what additional capabilities does it support?",0.7795533749740571,0.0,91.04043787508272,91.81999125005677,11,10,62
