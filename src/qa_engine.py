@@ -241,4 +241,61 @@ passages, omit it rather than inventing one.
 
 If an important part cannot be supported by the passages, explicitly say so.
 Do not output analysis or source-checking notes.
+
+
+OPTIONAL EXPLANATORY DIAGRAM:
+- Include a diagram only when it helps explain a mechanism,
+  process, architecture, or interaction.
+- Identify meaningful components and their relationships.
+- Do not merely connect keywords mentioned in the paper.
+- Each node must represent a distinct participant, component,
+  step, or outcome.
+- Each edge must represent a genuine, source-supported relationship.
+- The direction of each edge must match its meaning.
+- Before generating the diagram, silently verify every edge:
+  (1) Does the source node actually perform the stated action?
+  (2) Is the target node actually the recipient or result?
+  (3) Is this relationship explicitly supported by the passages?
+- Never connect two participants merely because both appear
+  in the same passage.
+- Distinguish the original setup of an experiment from any
+  modified or alternative version described by the author.
+- Do not combine participants from different experimental
+  arrangements into one diagram unless the relationship
+  between those arrangements is explicitly being explained.
+- For communication-based processes, show the direction of
+  questions and responses accurately.
+- Include the main outcome or decision when it is essential
+  to understanding the mechanism.
+- If any important relationship is uncertain, omit that edge.
+- Use separate nodes for participants and outcomes.
+- Do not invent connections unsupported by retrieved passages.
+- Prefer 4 to 8 nodes and concise relationship labels.
+- Do not generate Mermaid syntax yourself.
+- Instead, provide structured JSON describing the diagram.
+- Use simple, valid JSON with double-quoted keys and strings.
+- Do not include comments or trailing commas.
+
+When including a diagram, use exactly this structure:
+
+## Explanatory diagram
+
+```json
+{{
+  "nodes": [
+    {{"id": "A", "label": "First component"}},
+    {{"id": "B", "label": "Second component"}},
+    {{"id": "C", "label": "Outcome"}}
+  ],
+  "edges": [
+    {{"from": "A", "to": "B", "label": "Sends information"}},
+    {{"from": "B", "to": "C", "label": "Produces"}}
+  ]
+}}
+```
+
+If a meaningful diagram cannot be supported by the passages,
+omit the explanatory diagram section entirely.
+
+
 """.strip() 

@@ -22,7 +22,8 @@ from src.qa_engine import (
 from src.ollama_client import stream_ollama
 
 import fitz  # PyMuPDF
-
+from src.diagram_builder import extract_diagram_data, build_mermaid
+from src.html_diagram_builder import build_html_diagram
 from streamlit_searchbox import st_searchbox
 from difflib import SequenceMatcher
 
@@ -866,7 +867,9 @@ def stream_answer(prompt):
         full_answer += chunk
         answer_placeholder.markdown(full_answer + "▌")
 
-    answer_placeholder.markdown(full_answer)
+    clean_answer, _ = extract_diagram_data(full_answer)
+    answer_placeholder.markdown(clean_answer)
+
     return full_answer
 
 
@@ -877,7 +880,129 @@ def collect_llm_output(prompt):
         full_output += chunk
 
     return full_output.strip()
+def extract_mermaid_diagram(answer: str):
+    """Extract an optional Mermaid diagram from an LLM answer."""
+    import re
 
+    pattern = (
+        r"(?:^|\n)#{1,3}\s*Explanatory diagram\s*\n"
+        r"\s*```mermaid\s*\n"
+        r"(.*?)"
+        r"\n\s*```"
+    )
+
+    match = re.search(
+        pattern, answer, flags=re.IGNORECASE | re.DOTALL
+    )
+
+    if not match:
+        return answer, None
+
+    diagram_code = match.group(1).strip()
+
+    clean_answer = (
+        answer[:match.start()] + answer[match.end():]
+    ).strip()
+
+    return clean_answer, diagram_code
+
+
+def render_mermaid_diagram(diagram_code: str):
+    """Render Mermaid inside an isolated Streamlit component."""
+    import json
+    import re
+
+    if not diagram_code:
+        return
+
+    if not re.match(
+        r"^\s*(flowchart|graph)\s+(TD|TB|LR|RL|BT)\b",
+        diagram_code,
+        flags=re.IGNORECASE,
+    ):
+        st.caption("Unsupported diagram format.")
+        st.code(diagram_code, language="text")
+        return
+
+    if len(diagram_code) > 5000:
+        st.caption("Diagram is too large to display.")
+        return
+
+    safe_diagram = json.dumps(diagram_code).replace("<", "\\u003c")
+
+    html = """
+    <html>
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+        <style>
+            body {
+                margin: 0;
+                padding: 16px;
+                font-family: -apple-system, BlinkMacSystemFont,
+                             "Segoe UI", sans-serif;
+                background: #ffffff;
+            }
+            .diagram-container {
+                border: 1px solid #e4eaf1;
+                border-radius: 14px;
+                padding: 20px;
+                overflow-x: auto;
+                text-align: center;
+            }
+            svg {
+                max-width: 100%;
+                height: auto;
+            }
+            #error {
+                color: #69788b;
+                font-size: 14px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="diagram-container">
+            <div id="diagram"></div>
+            <div id="error"></div>
+        </div>
+
+        <script>
+            const diagramCode = DIAGRAM_PLACEHOLDER;
+
+            async function drawDiagram() {
+                try {
+                    mermaid.initialize({
+                        startOnLoad: false,
+                        securityLevel: "strict",
+                        theme: "neutral",
+                        flowchart: {
+                            useMaxWidth: true,
+                            htmlLabels: false
+                        }
+                    });
+
+                    const result = await mermaid.render(
+                        "researchDiagram",
+                        diagramCode
+                    );
+
+                    document.getElementById("diagram").innerHTML =
+                        result.svg;
+
+                } catch (error) {
+                    document.getElementById("error").textContent =
+                        "Could not render this diagram.";
+                }
+            }
+
+            drawDiagram();
+        </script>
+    </body>
+    </html>
+    """
+
+    html = html.replace("DIAGRAM_PLACEHOLDER", safe_diagram)
+
+    components.html(html, height=400, scrolling=True)
 
 def show_sources_and_details(result):
 
@@ -950,7 +1075,20 @@ def show_sources_and_details(result):
 
 def show_result(result):
     st.subheader("Answer")
-    st.markdown(result["answer"])
+
+    clean_answer, diagram_data = extract_diagram_data(
+        result["answer"]
+    )
+
+    st.markdown(clean_answer)
+
+    if diagram_data:
+        diagram_code = build_mermaid(diagram_data)
+
+        if diagram_code:
+            st.subheader("Explanatory diagram")
+            render_mermaid_diagram(diagram_code)
+
     show_sources_and_details(result)
 
 
@@ -1329,13 +1467,25 @@ if st.button(
             st.subheader("Answer")
 
         with timed_stage("answer_generation", timings):
-
             answer = stream_answer(final_prompt)
 
         llm_time = timings["answer_generation"]
         total_time = sum(timings.values())
 
+        clean_answer, diagram_data = extract_diagram_data(answer)
+
+        if diagram_data:
+            with st.expander("Debug: Structured diagram data"):
+                st.json(diagram_data)
+
+            diagram_html = build_html_diagram(diagram_data)
+
+            if diagram_html:
+                st.subheader("Explanatory diagram")
+                st.html(diagram_html)
+
         progress_placeholder.empty()
+
 
         pages = sorted(set(chunk.get("page", "unknown") for chunk in results))
         confidence = coverage_score
