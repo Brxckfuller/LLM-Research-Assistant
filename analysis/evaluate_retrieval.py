@@ -1,9 +1,10 @@
+
 from pathlib import Path
 import sys
 import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.append(str(PROJECT_ROOT))
+sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.adaptive_retrieval import adaptive_retrieve
 
@@ -16,18 +17,59 @@ RAW_K = 32
 
 
 def available_documents():
-    return {p.stem for p in INDEX_DIR.glob("*.faiss")}
+    return {
+        path.stem
+        for path in INDEX_DIR.glob("*.faiss")
+        if path.is_file()
+    }
 
 
 def parse_pages(value):
-    return {int(x.strip()) for x in str(value).split(",") if x.strip().isdigit()}
+    if pd.isna(value):
+        return set()
+
+    return {
+        int(page.strip())
+        for page in str(value).split(",")
+        if page.strip().isdigit()
+    }
 
 
-def reciprocal_rank(retrieved_pages, expected_pages):
-    for rank, page in enumerate(retrieved_pages, start=1):
+def calculate_metrics(retrieved_pages, expected_pages, k=TOP_K):
+    if not expected_pages:
+        raise ValueError("Expected pages cannot be empty.")
+
+    top_pages = retrieved_pages[:k]
+    retrieved_set = set(top_pages)
+
+    relevant_pages_found = retrieved_set & expected_pages
+
+    # Did we retrieve at least one relevant page?
+    hit_rate = float(bool(relevant_pages_found))
+
+    # What fraction of expected pages were retrieved?
+    recall = len(relevant_pages_found) / len(expected_pages)
+
+    # What fraction of retrieved passages came from relevant pages?
+    relevant_results = sum(
+        page in expected_pages for page in top_pages
+    )
+    precision = relevant_results / len(top_pages) if top_pages else 0.0
+
+    # Rank of the first relevant retrieved passage.
+    reciprocal_rank = 0.0
+
+    for rank, page in enumerate(top_pages, start=1):
         if page in expected_pages:
-            return 1 / rank
-    return 0.0
+            reciprocal_rank = 1.0 / rank
+            break
+
+    return {
+        "hit_rate_at_10": hit_rate,
+        "recall_at_10": recall,
+        "precision_at_10": precision,
+        "mrr": reciprocal_rank,
+    }
 
 
 def main():
@@ -38,15 +80,21 @@ def main():
     df = pd.read_csv(EVAL_FILE)
 
     rows = []
+    skipped = []
 
     for _, row in df.iterrows():
         question = row["question"]
         document = row["document"]
         expected_pages = parse_pages(row["expected_pages"])
 
+        if not expected_pages:
+            raise ValueError(
+                f"No expected pages for question: {question}"
+            )
+
         if document not in valid_docs:
             print(f"Skipping: '{document}' index not found.")
-            print(f"Available documents include: {sorted(valid_docs)}")
+            skipped.append(document)
             continue
 
         retrieval_data = adaptive_retrieve(
@@ -59,29 +107,32 @@ def main():
         results = retrieval_data["results"]
 
         retrieved_pages = [
-            int(r["page"])
-            for r in results
-            if str(r.get("page", "")).isdigit()
+            int(result["page"])
+            for result in results
+            if str(result.get("page", "")).isdigit()
         ]
 
-        retrieved_set = set(retrieved_pages)
-        hits = retrieved_set.intersection(expected_pages)
+        metrics = calculate_metrics(
+            retrieved_pages,
+            expected_pages,
+            k=TOP_K,
+        )
 
-        recall_at_10 = 1.0 if hits else 0.0
-        precision_at_10 = len(hits) / TOP_K
-        mrr = reciprocal_rank(retrieved_pages, expected_pages)
+        rows.append({
+            "question": question,
+            "document": document,
+            "expected_pages": ",".join(
+                map(str, sorted(expected_pages))
+            ),
+            "retrieved_pages": ",".join(
+                map(str, retrieved_pages)
+            ),
+            **metrics,
+        })
 
-        rows.append(
-            {
-                "question": question,
-                "document": document,
-                "expected_pages": ",".join(map(str, sorted(expected_pages))),
-                "retrieved_pages": ",".join(map(str, retrieved_pages)),
-                "hit": bool(hits),
-                "recall_at_10": recall_at_10,
-                "precision_at_10": precision_at_10,
-                "mrr": mrr,
-            }
+    if not rows:
+        raise RuntimeError(
+            "No questions were evaluated. Check available indexes."
         )
 
     results_df = pd.DataFrame(rows)
@@ -90,9 +141,15 @@ def main():
     print("\nRetrieval Evaluation")
     print("=" * 60)
     print(f"Questions evaluated: {len(results_df)}")
-    print(f"Recall@10: {results_df['recall_at_10'].mean():.3f}")
-    print(f"Precision@10: {results_df['precision_at_10'].mean():.3f}")
-    print(f"MRR: {results_df['mrr'].mean():.3f}")
+    print(f"Questions skipped: {len(skipped)}")
+
+    for metric in [
+        "hit_rate_at_10",
+        "recall_at_10",
+        "precision_at_10",
+        "mrr",
+    ]:
+        print(f"{metric}: {results_df[metric].mean():.3f}")
 
     print("\nSaved results to:")
     print(OUTPUT_FILE)

@@ -1,9 +1,9 @@
 question,document,expected_pages
 What is the imitation game?,turing,"1"
-What is Lady Lovelace's objection?,turing,"8"
+What is Lady Lovelace's objection?,turing,"14,15"
 What does Turing say about thinking machines?,turing,"1,2"
 Can machines think according to Turing?,turing,"1"
-What objections to machine intelligence does Turing discuss?,turing,"7,8"
+What objections to machine intelligence does Turing discuss?,turing,"9,10,11,12,13,14,15"
 How does Turing respond to the mathematical objection?,turing,"9"
 What is Turing's prediction about intelligent machines?,turing,"10"
 How does Turing describe digital computers?,turing,"3"
