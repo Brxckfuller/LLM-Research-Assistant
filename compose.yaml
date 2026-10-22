@@ -1,0 +1,16 @@
+services:
+  api:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      OLLAMA_CHAT_URL: http://host.docker.internal:11434/api/chat
+      HF_HOME: /app/.cache/huggingface
+    volumes:
+      - ./data/indexes:/app/data/indexes:ro
+      - ./data/metadata:/app/data/metadata:ro
+      - hf_cache:/app/.cache/huggingface
+    restart: unless-stopped
+
+volumes:
+  hf_cache:
