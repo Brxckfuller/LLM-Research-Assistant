@@ -26,4 +26,4 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run automated tests
-        run: python -m pytest tests/test_api.py tests/test_retrieval_metrics.py -q
+        run: python -m pytest tests/ -q
