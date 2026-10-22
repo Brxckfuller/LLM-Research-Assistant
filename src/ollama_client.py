@@ -1,7 +1,9 @@
 import os
 import json
 import requests
+import logging
 
+logger = logging.getLogger("api.rag_service")
 
 DEFAULT_MODEL = "llama3.1:8b"
 
@@ -23,9 +25,10 @@ def ask_ollama(prompt: str, model: str = DEFAULT_MODEL) -> str:
         "messages": [{"role": "user", "content": prompt}],
         "stream": False,
         "options": {
-            "temperature": 0.1,
-            "top_p": 0.85,
-        },
+    "temperature": 0.1,
+    "top_p": 0.85,
+    "num_predict": 650,
+},
     }
 
     try:
@@ -38,6 +41,22 @@ def ask_ollama(prompt: str, model: str = DEFAULT_MODEL) -> str:
         response.raise_for_status()
 
         data = response.json()
+
+        logger.info(
+            "ollama_inference "
+            "model=%s "
+            "prompt_tokens=%s "
+            "generated_tokens=%s "
+            "load_seconds=%.3f "
+            "prompt_eval_seconds=%.3f "
+            "eval_seconds=%.3f",
+            model,
+            data.get("prompt_eval_count"),
+            data.get("eval_count"),
+            data.get("load_duration", 0) / 1e9,
+            data.get("prompt_eval_duration", 0) / 1e9,
+            data.get("eval_duration", 0) / 1e9,
+        )
 
         return data.get("message", {}).get("content", "").strip()
 

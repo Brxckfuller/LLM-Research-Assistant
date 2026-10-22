@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI, HTTPException
 
 from api.schemas import QuestionRequest, QuestionResponse
@@ -7,7 +9,11 @@ from api.rag_service import (
     InferenceError,
 )
 
+rag_logger = logging.getLogger("api.rag_service")
+rag_logger.setLevel(logging.INFO)
 
+if not rag_logger.handlers:
+    rag_logger.addHandler(logging.StreamHandler())
 app = FastAPI(
     title="Research Paper Assistant API",
     description="Production-oriented API for a RAG research assistant.",

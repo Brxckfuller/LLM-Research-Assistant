@@ -2,29 +2,39 @@ from pathlib import Path
 import joblib
 import faiss
 import numpy as np
-
+from functools import lru_cache
 from src.embeddings import embed_query
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 INDEX_DIR = PROJECT_ROOT / "data" / "indexes"
 METADATA_DIR = PROJECT_ROOT / "data" / "metadata"
+@lru_cache(maxsize=4)
+def load_document_resources(document_name):
+    faiss_index = faiss.read_index(
+        str(INDEX_DIR / f"{document_name}.faiss")
+    )
 
+    chunks = joblib.load(
+        METADATA_DIR / f"{document_name}_chunks.joblib"
+    )
+
+    bm25 = joblib.load(
+        METADATA_DIR / f"{document_name}_bm25.joblib"
+    )
+
+    return faiss_index, chunks, bm25
 
 class Retriever:
     def __init__(self, document_name):
         self.document_name = document_name
 
-        self.faiss_index = faiss.read_index(
-            str(INDEX_DIR / f"{document_name}.faiss")
-        )
+        (
+            self.faiss_index,
+            self.chunks,
+            self.bm25,
+        ) = load_document_resources(document_name)
 
-        self.chunks = joblib.load(
-            METADATA_DIR / f"{document_name}_chunks.joblib"
-        )
-
-        self.bm25 = joblib.load(
-            METADATA_DIR / f"{document_name}_bm25.joblib"
-        )
+        
 
     def rewrite_query(self, query):
         q = query.lower()

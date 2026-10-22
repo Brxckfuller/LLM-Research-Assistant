@@ -1,3 +1,4 @@
+import logging
 import time
 from pathlib import Path
 
@@ -7,7 +8,7 @@ from src.ollama_client import ask_ollama
 
 from api.schemas import QuestionResponse, SourceReference
 
-
+logger = logging.getLogger(__name__)
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 INDEX_DIR = PROJECT_ROOT / "data" / "indexes"
 METADATA_DIR = PROJECT_ROOT / "data" / "metadata"
@@ -49,6 +50,7 @@ def answer_question(
     top_k: int = 6,
 ) -> QuestionResponse:
 
+    request_start = time.perf_counter()
     validate_document_name(document_name)
 
     # Validate against existing index files.
@@ -106,7 +108,25 @@ def answer_question(
         )
         for chunk in results
     ]
+    total_time = time.perf_counter() - request_start
 
+    logger.info(
+        "rag_request_completed "
+        "document=%s "
+        "question_type=%s "
+        "retrieval_seconds=%.3f "
+        "generation_seconds=%.3f "
+        "total_seconds=%.3f "
+        "source_count=%d "
+        "coverage_score=%d",
+        document_name,
+        retrieval_data["question_type"],
+        retrieval_time,
+        generation_time,
+        total_time,
+        len(sources),
+        retrieval_data["coverage_score"],
+    )
     return QuestionResponse(
         answer=answer,
         document_name=document_name,
