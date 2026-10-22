@@ -1,10 +1,11 @@
 import logging
 import time
 from pathlib import Path
+import requests
 
 from src.adaptive_retrieval import adaptive_retrieve
 from src.qa_engine import build_fast_answer_prompt
-from src.ollama_client import ask_ollama
+from src.llm_client import generate_answer
 
 from api.schemas import QuestionResponse, SourceReference
 
@@ -85,19 +86,24 @@ def answer_question(
     # Stage 2: Construct the existing Fast Mode prompt.
     prompt = build_fast_answer_prompt(question, results)
 
-    # Stage 3: Generate an answer using Ollama.
+    # Stage 3: Generate an answer using the configured provider.
     generation_start = time.perf_counter()
 
-    answer = ask_ollama(prompt)
+    try:
+        answer = generate_answer(prompt)
+    except (requests.RequestException, RuntimeError, ValueError, KeyError, IndexError, TypeError) as exc:
+        raise InferenceError("LLM inference failed.") from exc
 
     generation_time = time.perf_counter() - generation_start
 
     if (
-        not answer
-        or answer.startswith("Error calling Ollama:")
-        or answer.startswith("Ollama is not running.")
+            not answer
+            or answer.startswith("Error calling Ollama:")
+            or answer.startswith("Ollama is not running.")
     ):
-        raise InferenceError(answer or "Ollama returned an empty response.")
+        raise InferenceError(
+            "LLM returned an empty response or inference failed."
+        )
 
     # Stage 4: Convert retrieved chunks into structured references.
     sources = [
