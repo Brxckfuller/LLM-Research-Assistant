@@ -26,3 +26,7 @@ __pycache__/
 # Generated document indexes and metadata
 data/indexes/
 data/metadata/
+# Local research documents and generated retrieval resources
+data/papers/
+data/indexes/
+data/metadata/
