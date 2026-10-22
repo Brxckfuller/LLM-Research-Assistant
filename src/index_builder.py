@@ -113,5 +113,11 @@ def build_all_indexes():
 
 
 if __name__ == "__main__":
-    build_all_indexes()
+    if len(sys.argv) == 2:
+        build_index(sys.argv[1])
+    elif len(sys.argv) == 1:
+        build_all_indexes()
+    else:
+        print("Usage: python -m src.index_builder [pdf_path]")
+        sys.exit(1)
 
