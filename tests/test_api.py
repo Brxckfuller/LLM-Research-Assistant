@@ -162,5 +162,15 @@ def test_unknown_document_rejected():
         validate_document_name("nonexistent_paper_12345")
 
 
-def test_existing_document_accepted():
-    validate_document_name("chalmers1995")
+def test_existing_document_accepted(tmp_path, monkeypatch):
+    from api import rag_service
+
+    # Create a temporary FAISS index file for this test.
+    fake_index = tmp_path / "chalmers1995.faiss"
+    fake_index.touch()
+
+    # Make document validation search our temporary directory.
+    monkeypatch.setattr(rag_service, "INDEX_DIR", tmp_path)
+
+    # The document should now be recognised as available.
+    rag_service.validate_document_name("chalmers1995")
