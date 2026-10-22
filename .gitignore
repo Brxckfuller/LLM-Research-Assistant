@@ -22,3 +22,7 @@ __pycache__/
 
 # macOS
 .DS_Store
+
+# Generated document indexes and metadata
+data/indexes/
+data/metadata/
