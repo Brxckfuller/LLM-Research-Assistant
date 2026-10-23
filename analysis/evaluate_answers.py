@@ -24,6 +24,11 @@ ABSTENTION_PHRASES = (
     "not specified",
     "not in the document",
     "not in the provided",
+    "do not provide information",
+    "does not provide information",
+    "no information on",
+    "no direct evidence",
+    "not directly supported",
     "cannot answer",
     "can't answer",
 )
@@ -60,6 +65,12 @@ def main():
         type=int,
         default=None,
         help="Maximum number of questions to evaluate",
+    )
+    parser.add_argument(
+        "--question-id",
+        type=str,
+        default=None,
+        help="Evaluate a specific question by its ID",
     )
     args = parser.parse_args()
 
