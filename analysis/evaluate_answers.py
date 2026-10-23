@@ -8,6 +8,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from api.rag_service import answer_question
+from analysis.answer_classifier import AnswerClassification, classify_answer
 
 INPUT_FILE = PROJECT_ROOT / "analysis" / "answer_eval_questions.csv"
 OUTPUT_FILE = PROJECT_ROOT / "analysis" / "answer_eval_results.csv"
@@ -80,6 +81,16 @@ def main():
     with INPUT_FILE.open(newline="", encoding="utf-8") as file:
         questions = list(csv.DictReader(file))
 
+    if args.question_id is not None:
+        questions = [
+            row for row in questions
+            if row["question_id"] == args.question_id
+        ]
+        if not questions:
+            parser.error(
+                f"Question ID {args.question_id} was not found"
+            )
+
     if args.limit is not None:
         questions = questions[:args.limit]
 
@@ -101,6 +112,12 @@ def main():
 
             answer = response.answer
             abstained = detected_abstention(answer)
+            classification = classify_answer(answer)
+            classification_match = (
+                classification == AnswerClassification.ANSWERED
+                if answerable
+                else classification == AnswerClassification.ABSTAINED
+            )
 
             results.append({
                 "question_id": row["question_id"],
@@ -113,6 +130,11 @@ def main():
                     row["expected_keywords"],
                 ),
                 "detected_abstention": abstained,
+                "answer_classification": classification.value,
+                "classification_match": classification_match,
+                "manual_review_required": (
+                    classification == AnswerClassification.MIXED
+                ),
                 "abstention_expected": not answerable,
                 "abstention_match": abstained == (not answerable),
                 "source_count": len(response.sources),
@@ -135,6 +157,9 @@ def main():
                 "answer": "",
                 "keyword_coverage": "",
                 "detected_abstention": "",
+                "answer_classification": "",
+                "classification_match": "",
+                "manual_review_required": True,
                 "abstention_expected": not answerable,
                 "abstention_match": "",
                 "source_count": "",

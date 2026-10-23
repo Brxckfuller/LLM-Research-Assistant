@@ -1,20 +1,185 @@
-question_id,document,question,answerable,answer,keyword_coverage,detected_abstention,abstention_expected,abstention_match,source_count,source_pages,retrieval_seconds,generation_seconds,error
+question_id,document,question,answerable,answer,keyword_coverage,detected_abstention,abstention_expected,abstention_match,source_count,source_pages,retrieval_seconds,generation_seconds,error,answer_classification,classification_match,manual_review_required
 1,rag_demo,What does RAG stand for?,True,"## Answer
 
 Retrieval-Augmented Generation (RAG) is a system that combines information retrieval with a language model. The central mechanism of RAG is that it retrieves relevant passages from a document collection and includes them in the generation prompt, instead of relying entirely on knowledge stored in model parameters. This allows the system to leverage the vast amount of information available in the document collection, while also providing the language model with context and supporting evidence.
 
-The retrieval process in RAG involves using a library like FAISS for similarity search over dense vectors, or a lexical ranking algorithm like BM25, to retrieve candidate passages. The retrieved passages are then provided to the language model as supporting context, which enables the system to generate more accurate and informative responses. The Grounded Answer Generation approach in RAG emphasizes the importance of distinguishing supported claims from missing evidence, citing relevant sources, and avoiding inventing unsupported facts.
+The significance of this mechanism lies in its ability to improve the quality and accuracy of generated text. By incorporating relevant passages from the document collection, RAG can provide the language model with a more comprehensive understanding of the topic, leading to more informed and accurate responses. This is particularly important in applications where accuracy and reliability are critical, such as in tasks that require factual correctness and faithfulness.
 
-The evaluation of RAG systems involves assessing both retrieval quality and answer quality. Retrieval quality can be evaluated using metrics such as Recall at K, Precision at K, and Mean Reciprocal Rank, while answer quality requires additional evaluation of factual correctness, faithfulness, citation accuracy, and completeness.
+The retrieval process in RAG involves several steps, including document processing and chunking, semantic embeddings, and vector retrieval. The system uses a combination of dense vector search and lexical retrieval to identify relevant passages, and then ranks them based on their similarity to the user query. The top-ranked passages are then provided to the language model as supporting context, which is used to generate the final response.
 
 ## Key points
 
-* RAG combines information retrieval with a language model to leverage the vast amount of information available in the document collection.
-* The retrieval process in RAG involves using libraries like FAISS or BM25 to retrieve candidate passages.
-* The Grounded Answer Generation approach in RAG emphasizes the importance of distinguishing supported claims from missing evidence.
+* RAG combines information retrieval with a language model to generate text.
+* The system retrieves relevant passages from a document collection and includes them in the generation prompt.
+* RAG improves the quality and accuracy of generated text by providing the language model with context and supporting evidence.
 
 ## Evidence from the text
 
 * ""Retrieval-Augmented Generation (RAG) combines information retrieval with a language model."" (Source 1, Page 1)
-* ""The system retrieves relevant passages from a document collection and includes them in the generation prompt."" (Source 1, Page 1)
-* ""Grounded Answer Generation Retrieved passages are provided to a language model as supporting context."" (Source 3, Page 1)",1.0,False,False,True,3,1;2;1,15.628,56.499,
+* ""Instead of relying entirely on knowledge stored in model parameters, the system retrieves relevant passages from a document collection and includes them in the generation prompt."" (Source 1, Page 1)
+* ""The system should distinguish supported claims from missing evidence, cite relevant sources, and avoid inventing unsupported facts."" (Source 3, Page 1)
+
+## Explanatory diagram
+
+```json
+{
+  ""nodes"": [
+    {""id"": ""A"", ""label"": ""Document Collection""},
+    {""id"": ""B"", ""label"": ""Language Model""},
+    {""id"": ""C"", ""label"": ""Retrieved Passages""},
+    {""id"": ""D"", ""label"": ""Generation Prompt""}
+  ],
+  ""edges"": [
+    {""from"": ""A"", ""to"": ""C"", ""label"": ""Retrieves relevant passages""},
+    {""from"": ""C"", ""to"": ""B"", ""label"": ""Provides supporting context""},
+    {""from"": ""B"", ""to"": ""D"", ""label"": ""Generates response""}
+  ]
+}
+```",1.0,False,False,True,3,1;2;1,16.287,70.941,,ANSWERED,True,False
+2,rag_demo,What is the purpose of semantic retrieval?,True,"## Answer
+
+The purpose of semantic retrieval in Retrieval-Augmented Generation (RAG) is to retrieve relevant passages from a document collection and include them in the generation prompt, rather than relying entirely on knowledge stored in model parameters. This is achieved through the use of semantic embeddings, which convert text into numerical vectors, and a similarity search algorithm, such as FAISS or BM25, to retrieve candidates. The retrieved passages are then provided to a language model as supporting context, allowing it to generate more accurate and informative responses.
+
+The significance of semantic retrieval lies in its ability to leverage the vast amount of knowledge stored in document collections, while also allowing the model to focus on the most relevant and accurate information. This approach enables the RAG system to identify complementary candidate passages and merge their rankings before further relevance assessment.
+
+The RAG system can be evaluated using metrics such as Recall at K, Precision at K, Hit Rate at K, and Mean Reciprocal Rank, as well as additional evaluation of factual correctness, faithfulness, citation accuracy, and completeness.
+
+## Key points
+
+* Semantic retrieval retrieves relevant passages from a document collection and includes them in the generation prompt.
+* Semantic embeddings convert text into numerical vectors, allowing for similarity search and retrieval.
+* The RAG system can be evaluated using a range of metrics, including recall, precision, and mean reciprocal rank.
+
+## Evidence from the text
+
+* ""Instead of relying entirely on knowledge stored in model parameters, the system retrieves relevant passages from a document collection and includes them in the generation prompt."" (Source 1, Page 1)
+* ""Semantically related passages often have similar vector representations."" (Source 1, Page 1)
+* ""Retrieval quality can be evaluated using Recall at K, Precision at K, Hit Rate at K, and Mean Reciprocal Rank."" (Source 2, Page 2)
+
+## Explanatory diagram
+
+```json
+{
+  ""nodes"": [
+    {""id"": ""A"", ""label"": ""Document Collection""},
+    {""id"": ""B"", ""label"": ""Semantic Embeddings""},
+    {""id"": ""C"", ""label"": ""Similarity Search Algorithm""},
+    {""id"": ""D"", ""label"": ""Language Model""},
+    {""id"": ""E"", ""label"": ""Retrieved Passages""}
+  ],
+  ""edges"": [
+    {""from"": ""A"", ""to"": ""B"", ""label"": ""Converts text into numerical vectors""},
+    {""from"": ""B"", ""to"": ""C"", ""label"": ""Retrieves candidates""},
+    {""from"": ""C"", ""to"": ""D"", ""label"": ""Provides supporting context""},
+    {""from"": ""D"", ""to"": ""E"", ""label"": ""Generates responses""}
+  ]
+}
+```",0.5,False,False,True,3,1;2;1,0.659,69.989,,ANSWERED,True,False
+3,rag_demo,What is BM25 used for?,True,"## Answer
+
+BM25 is used for lexical ranking, particularly when questions contain specific technical terminology, identifiers, or exact phrases. This is because BM25 considers query term frequency, document length, and term rarity, making it useful for precise queries. The algorithm is applied in a retrieval system that combines information retrieval with a language model, known as Retrieval-Augmented Generation (RAG).
+
+In the context of RAG, BM25 is used as a keyword retrieval method, which is complementary to dense vector search using FAISS. The two methods can identify candidate passages and their rankings may be merged before further relevance assessment. This hybrid approach allows the system to leverage the strengths of both methods, improving overall retrieval quality.
+
+The use of BM25 in RAG is particularly relevant when questions contain specific technical terminology, identifiers, or exact phrases. This is because BM25 is well-suited for handling such queries, which can be challenging for dense vector search methods.
+
+## Key points
+
+* BM25 is a lexical ranking algorithm used for precise queries.
+* BM25 is particularly useful when questions contain specific technical terminology, identifiers, or exact phrases.
+* BM25 is used in a hybrid retrieval system that combines information retrieval with a language model.
+
+## Evidence from the text
+
+* ""BM25 is a lexical ranking algorithm that considers query term frequency, document length, and term rarity."" (Source 1, Page 1)
+* ""BM25 is useful when questions contain specific technical terminology, identifiers, or exact phrases."" (Source 1, Page 1)
+* ""The two methods can identify complementary candidate passages. Their rankings may be merged before further relevance assessment."" (Source 3, Page 1)",1.0,False,False,True,3,1;2;1,1.037,45.766,,ANSWERED,True,False
+4,rag_demo,Why combine semantic retrieval with BM25?,True,"## Answer
+
+Combining semantic retrieval with BM25 is beneficial because it leverages the strengths of both methods. Semantic retrieval, which uses dense vector search, excels at identifying relevant passages based on their semantic meaning, whereas BM25, a lexical ranking algorithm, is effective when questions contain specific technical terminology or exact phrases. By merging their rankings, the system can identify complementary candidate passages and provide a more comprehensive answer.
+
+The hybrid retrieval approach combines the strengths of both methods by applying semantic retrieval to identify a large set of candidate passages and then using BM25 to rank and filter the results. This approach is particularly useful when the question contains specific technical terminology or exact phrases, as BM25 can effectively identify relevant passages in such cases.
+
+The system can also use cross-encoder reranking to further assess the relevance of the retrieved passages and provide a more accurate answer. This approach jointly processes the query and candidate passage to estimate relevance, which can be more computationally expensive than initial retrieval, but can provide more accurate results.
+
+## Key points
+
+* Combining semantic retrieval with BM25 leverages the strengths of both methods.
+* Hybrid retrieval combines dense vector search with lexical retrieval to identify relevant passages.
+* Cross-encoder reranking can be used to further assess the relevance of retrieved passages.
+
+## Evidence from the text
+
+* ""The two methods can identify complementary candidate passages. Their rankings may be merged before further relevance assessment."" (Source 3, Page 1)
+* ""Hybrid retrieval combines dense vector search with lexical retrieval."" (Source 1, Page 1)
+* ""Cross-Encoder Reranking A cross-encoder jointly processes a query and candidate passage to estimate relevance."" (Source 3, Page 1)
+
+## Explanatory diagram
+
+```json
+{
+  ""nodes"": [
+    {""id"": ""A"", ""label"": ""Semantic Retrieval""},
+    {""id"": ""B"", ""label"": ""BM25""},
+    {""id"": ""C"", ""label"": ""Hybrid Retrieval""},
+    {""id"": ""D"", ""label"": ""Cross-Encoder Reranking""}
+  ],
+  ""edges"": [
+    {""from"": ""A"", ""to"": ""C"", ""label"": ""Provides candidate passages""},
+    {""from"": ""B"", ""to"": ""C"", ""label"": ""Ranks and filters results""},
+    {""from"": ""C"", ""to"": ""D"", ""label"": ""Inputs to reranking""}
+  ]
+}
+```",0.5,False,False,True,3,1;2;1,0.762,61.892,,ANSWERED,True,False
+5,rag_demo,What does reranking do?,True,"## Answer
+
+Reranking is a mechanism used in Retrieval-Augmented Generation (RAG) to refine the relevance of candidate passages. It involves jointly processing a query and candidate passage using a cross-encoder to estimate relevance, which is typically more computationally expensive than initial retrieval (Source 1, Page 1). This process is applied to a smaller candidate set, allowing for more accurate relevance assessment.
+
+The purpose of reranking is to identify the most relevant passages among the initial retrieval results. By merging the rankings of different retrieval methods, such as cross-encoder reranking and BM25 keyword retrieval, the system can improve the overall quality of the retrieved passages (Source 1, Page 1). This is particularly useful when questions contain specific technical terminology or exact phrases, where BM25 keyword retrieval can be more effective (Source 3, Page 1).
+
+## Key points
+
+* Reranking is a mechanism used in RAG to refine the relevance of candidate passages.
+* It involves jointly processing a query and candidate passage using a cross-encoder.
+* Reranking is applied to a smaller candidate set to improve relevance assessment.
+
+## Evidence from the text
+
+* ""Cross-Encoder Reranking A cross-encoder jointly processes a query and candidate passage to estimate relevance."" (Source 1, Page 1)
+* ""Their rankings may be merged before further relevance assessment."" (Source 1, Page 1)
+* ""BM25 is a lexical ranking algorithm that considers query term frequency, document length, and term rarity."" (Source 3, Page 1)
+
+## Explanatory diagram
+
+```json
+{
+  ""nodes"": [
+    {""id"": ""A"", ""label"": ""Query""},
+    {""id"": ""B"", ""label"": ""Candidate passage""},
+    {""id"": ""C"", ""label"": ""Cross-encoder""},
+    {""id"": ""D"", ""label"": ""Reranked passages""}
+  ],
+  ""edges"": [
+    {""from"": ""A"", ""to"": ""B"", ""label"": ""Joint processing""},
+    {""from"": ""B"", ""to"": ""C"", ""label"": ""Input""},
+    {""from"": ""C"", ""to"": ""D"", ""label"": ""Output""}
+  ]
+}
+```",0.5,False,False,True,3,1;2;1,1.148,53.745,,ANSWERED,True,False
+6,rag_demo,What is the capital of France?,False,"## Answer
+
+The question ""What is the capital of France?"" is not directly related to the retrieved passages, which discuss Retrieval-Augmented Generation (RAG) and its applications. However, the passages do not provide information on the capital of France. To answer this question, one would typically consult a source that provides geographical information, such as an atlas or a Wikipedia article.
+
+## Key points
+
+* The retrieved passages do not provide information on the capital of France.
+* Retrieval-Augmented Generation (RAG) is a method that combines information retrieval with a language model.
+* RAG can be used for various applications, including answer generation and question answering.
+
+## Evidence from the text
+
+* ""A Practical Introduction to Retrieval-Augmented Generation Original technical demonstration document for a RAG system."" (Source 3, Page 1)
+* ""Retrieval-Augmented Generation (RAG) combines information retrieval with a language model."" (Source 3, Page 1)
+* ""Documents are extracted into text and divided into smaller chunks."" (Source 3, Page 1)
+
+Note: Since the retrieved passages do not provide information on the capital of France, there is no direct evidence to support an answer to this question.",,False,True,False,3,1;2;1,0.541,32.781,,ABSTAINED,True,False
