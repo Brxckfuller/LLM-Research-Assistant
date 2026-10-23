@@ -20,6 +20,62 @@ The project was developed as part of my AI engineering portfolio to explore how 
 
 ---
 
+## Results at a Glance
+
+| Metric | Result | Evaluation |
+|---|---:|---|
+| Recall@10 | **90.0%** | 20-question retrieval benchmark |
+| Precision@10 | **0.145** | 20-question retrieval benchmark |
+| Mean Reciprocal Rank | **0.459** | 20-question retrieval benchmark |
+| Automated tests | **47 passing** | Local test suite |
+| Citation references | **3/3 valid** | One manually reviewed answer |
+| Mean end-to-end latency | **113.47 s** | 30-query local benchmark |
+
+The system combines FAISS semantic search, BM25 lexical retrieval, cross-encoder reranking, evidence extraction and local Ollama inference.
+
+These measurements describe the evaluated configurations and hardware, not guaranteed performance across other documents or machines.
+
+**Explore:** [Architecture](#system-architecture) · [Evaluation](#evaluation) · [Demo](#demo) · [Engineering case study](#engineering-case-study-handling-unsupported-questions)
+
+---
+
+## Quick Start
+
+Prerequisites: Python 3.11+, Git and [Ollama](https://ollama.com).
+
+Clone the repository:
+
+```bash
+git clone https://github.com/Brxckfuller/LLM-Research-Assistant.git
+cd LLM-Research-Assistant
+```
+
+Install and start the local language model:
+
+```bash
+ollama pull llama3.1
+ollama serve
+```
+
+Run `ollama serve` in a separate terminal if Ollama is not already running.
+
+In another terminal, create the Python environment and install dependencies:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+streamlit run app/streamlit_app.py
+```
+
+The interface normally opens at `http://localhost:8501`.
+
+Optional live web retrieval requires a Tavily API key in `.env`. Document-based question answering does not require a Tavily key.
+
+For detailed instructions, see [Installation](#installation).
+
+---
+
 ## Demo
 
 The screenshots below illustrate the complete workflow of the application.
@@ -453,9 +509,11 @@ Current routes include:
 
 | Route | Behaviour |
 |--------|-----------|
-| CHROMA | Retrieve information from uploaded documents |
+| CHROMA | Retrieve information from uploaded documents using FAISS and BM25 |
 | WEB | Retrieve information from live web search |
 | BOTH | Combine uploaded documents with web search |
+
+The name `CHROMA` is a legacy internal route label; the document retrieval implementation uses FAISS and BM25, not a Chroma vector database.
 
 Routing is currently implemented using rule-based query classification.
 
@@ -809,7 +867,7 @@ For research-oriented question answering, improved retrieval quality was conside
 
 Advantages
 
-- Offline operation
+- Local document-based inference without a hosted LLM API; optional web search requires an internet connection
 - Privacy
 - No API costs
 - Full control over model selection
@@ -842,6 +900,24 @@ Future versions may replace this component with an LLM-based router.
 ---
 
 # Failure Modes
+
+## Engineering Case Study: Handling Unsupported Questions
+
+**Problem:** During local evaluation, the assistant produced an unnecessarily long response to a question that could not be answered from the indexed document.
+
+**Investigation:** The example exposed weaknesses in the document-grounding instructions and in the evaluation classifier used to recognise abstentions.
+
+**Fix:** Revised the prompting instructions to require explicit abstention when sufficient evidence is unavailable. Improved answer classification and added regression tests.
+
+**Measured result:** In one representative local run, the unsupported-question response decreased from 1,228 to 81 characters, a **93.4% reduction**. The revised response was correctly classified as `ABSTAINED` and contained no unsupported source citations.
+
+**Lesson:** A reliable RAG application must handle missing evidence explicitly. Correct behaviour includes declining to answer when the retrieved material cannot support a response.
+
+This is an individual evaluation example, not a statistically established improvement across all queries.
+
+---
+
+
 
 Building the project highlighted several situations where retrieval quality becomes more difficult.
 
