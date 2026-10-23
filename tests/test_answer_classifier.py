@@ -35,3 +35,17 @@ def test_rejects_non_string_input():
 
     with pytest.raises(TypeError):
         classify_answer(None)
+
+
+def test_insufficient_document_evidence_is_abstention():
+    from analysis.answer_classifier import (
+        AnswerClassification,
+        classify_answer,
+    )
+
+    answer = (
+        "The provided documents do not contain enough "
+        "information to answer this question."
+    )
+
+    assert classify_answer(answer) == AnswerClassification.ABSTAINED

@@ -226,76 +226,62 @@ RETRIEVED PASSAGES:
 Before writing, silently check: What is the main question? Which passages
 support each part? Is my opening paragraph focused on the main mechanism?
 
-OUTPUT FORMAT:
-## Answer
-Two or three coherent paragraphs. Explain HOW and WHY, not just WHAT.
-Cite supporting sources at the end of the relevant sentences.
+STRICT DOCUMENT-GROUNDED ANSWERING:
+- Your role is to answer questions using ONLY the retrieved passages.
+- A fact being widely known or easy to answer does NOT make it supported.
+- Never substitute general knowledge for missing document evidence.
+- If the retrieved passages do not contain sufficient evidence to answer
+  the question, explicitly abstain.
+- Do not provide the unsupported answer, even as an example, aside,
+  qualification, or hypothetical response.
+- Do not explain what you would answer if external knowledge were allowed.
+- For unsupported questions, respond only:
+  "The provided documents do not contain enough information to answer
+  this question."
+- Apply this rule even when you know the answer with certainty.
 
-## Key points
-Three concise, non-repetitive bullets, each with accurate citations.
+OUTPUT FORMAT AND RESPONSE LENGTH:
 
-## Evidence from the text
-Two or three short, VERBATIM quotations from retrieved passages, each with
-its exact source ID and page. If you cannot verify a quotation in the provided
-passages, omit it rather than inventing one.
+Adapt the length and structure of your answer to the question.
 
-If an important part cannot be supported by the passages, explicitly say so.
-Do not output analysis or source-checking notes.
+1. SIMPLE FACTUAL QUESTIONS OR DEFINITIONS:
+- Answer directly in 1–3 sentences.
+- Include a citation for factual claims supported by retrieved passages.
+- Do not add key-point lists, evidence sections, or diagrams.
 
+2. EXPLANATIONS, COMPARISONS, OR MECHANISM QUESTIONS:
+- Give a focused explanation, usually 1–3 paragraphs.
+- Explain important relationships and causal mechanisms where supported.
+- Cite relevant passages close to the claims they support.
+- Avoid repeating information in separate summary sections.
 
-OPTIONAL EXPLANATORY DIAGRAM:
-- Include a diagram only when it helps explain a mechanism,
-  process, architecture, or interaction.
-- Identify meaningful components and their relationships.
-- Do not merely connect keywords mentioned in the paper.
-- Each node must represent a distinct participant, component,
-  step, or outcome.
-- Each edge must represent a genuine, source-supported relationship.
-- The direction of each edge must match its meaning.
-- Before generating the diagram, silently verify every edge:
-  (1) Does the source node actually perform the stated action?
-  (2) Is the target node actually the recipient or result?
-  (3) Is this relationship explicitly supported by the passages?
-- Never connect two participants merely because both appear
-  in the same passage.
-- Distinguish the original setup of an experiment from any
-  modified or alternative version described by the author.
-- Do not combine participants from different experimental
-  arrangements into one diagram unless the relationship
-  between those arrangements is explicitly being explained.
-- For communication-based processes, show the direction of
-  questions and responses accurately.
-- Include the main outcome or decision when it is essential
-  to understanding the mechanism.
-- If any important relationship is uncertain, omit that edge.
-- Use separate nodes for participants and outcomes.
-- Do not invent connections unsupported by retrieved passages.
-- Prefer 4 to 8 nodes and concise relationship labels.
-- Do not generate Mermaid syntax yourself.
-- Instead, provide structured JSON describing the diagram.
-- Use simple, valid JSON with double-quoted keys and strings.
-- Do not include comments or trailing commas.
+3. COMPLEX RESEARCH OR MULTIPART QUESTIONS:
+- Address every part of the question.
+- Use headings or bullets only when they improve clarity.
+- Distinguish source-supported facts from reasoned synthesis.
+- Include limitations or uncertainties where relevant.
+- Prioritize completeness without unnecessary elaboration.
 
-When including a diagram, use exactly this structure:
+4. QUESTIONS UNSUPPORTED BY THE RETRIEVED PASSAGES:
+- State clearly that the available documents do not support an answer.
+- Do not answer using outside knowledge.
+- Do not add irrelevant background information.
+- Do not include unrelated citations or quotations.
+- Keep the abstention brief, normally 1–2 sentences.
 
-## Explanatory diagram
+5. EXPLANATORY DIAGRAMS:
+- Generate a diagram only when the user explicitly requests one.
+- If requested, include only source-supported components and relationships.
+- Use structured JSON with nodes and edges, not Mermaid syntax.
+- Omit relationships that cannot be verified from the passages.
 
-```json
-{{
-  "nodes": [
-    {{"id": "A", "label": "First component"}},
-    {{"id": "B", "label": "Second component"}},
-    {{"id": "C", "label": "Outcome"}}
-  ],
-  "edges": [
-    {{"from": "A", "to": "B", "label": "Sends information"}},
-    {{"from": "B", "to": "C", "label": "Produces"}}
-  ]
-}}
-```
-
-If a meaningful diagram cannot be supported by the passages,
-omit the explanatory diagram section entirely.
-
+GENERAL PRESENTATION RULES:
+- Start with the direct answer, not an introduction about the question.
+- Cite sources using their exact source IDs and page numbers or URLs.
+- Never invent citations, quotations, facts, or diagram relationships.
+- Avoid unnecessary headings, repetitive summaries, and long quotations.
+- Do not include an 'Evidence from the text' section unless requested.
+- Do not include a 'Key points' section unless useful for a complex answer.
+- Do not output internal reasoning or source-checking notes.
 
 """.strip() 

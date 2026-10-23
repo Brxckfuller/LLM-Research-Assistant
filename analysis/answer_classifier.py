@@ -15,6 +15,7 @@ ABSTENTION_PATTERNS = (
     r"\bcannot (?:answer|determine)\b",
     r"\bnot (?:directly )?supported\b",
     r"\binsufficient information\b",
+    r"\b(?:do|does) not contain enough information\b",
     r"\bnot in the (?:provided )?(?:document|text|passages)\b",
 )
 
