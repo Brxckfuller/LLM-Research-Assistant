@@ -30,3 +30,6 @@ data/metadata/
 data/papers/
 data/indexes/
 data/metadata/
+
+# Local-only retrieved research evidence
+/analysis/local_evidence/

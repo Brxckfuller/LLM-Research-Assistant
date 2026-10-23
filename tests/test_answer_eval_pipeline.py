@@ -41,6 +41,7 @@ def test_question_id_filters_evaluation(tmp_path, monkeypatch):
     def fake_answer_question(question, document_name, top_k):
         calls.append(question)
         return SimpleNamespace(
+            document_name="demo",
             answer="The document does not provide information on this.",
             sources=[],
             retrieval_time_seconds=0.1,
@@ -81,6 +82,7 @@ def test_mixed_response_requires_manual_review(tmp_path, monkeypatch):
 
     def fake_answer_question(question, document_name, top_k):
         return SimpleNamespace(
+            document_name="demo",
             answer=(
                 "The document does not provide information "
                 "about France, but the answer is Paris."
@@ -105,3 +107,66 @@ def test_mixed_response_requires_manual_review(tmp_path, monkeypatch):
     assert row["answer_classification"] == "MIXED"
     assert row["classification_match"] == "False"
     assert row["manual_review_required"] == "True"
+
+
+def test_evaluation_saves_retrieved_evidence(tmp_path, monkeypatch):
+    import json
+    from pathlib import Path
+
+    questions = tmp_path / "questions.csv"
+    results = tmp_path / "results.csv"
+    evidence_dir = tmp_path / "evidence"
+
+    questions.write_text(
+        "question_id,document,question,expected_keywords,answerable\n"
+        "1,demo,What is semantic retrieval?,semantic,true\n",
+        encoding="utf-8",
+    )
+
+    def fake_answer_question(question, document_name, top_k):
+        return SimpleNamespace(
+            document_name="demo",
+            answer="Semantic retrieval uses meaning to find passages.",
+            sources=[
+                SimpleNamespace(
+                    document="demo",
+                    page=2,
+                    text="Semantic retrieval identifies similar meanings.",
+                )
+            ],
+            retrieval_time_seconds=0.1,
+            generation_time_seconds=0.2,
+        )
+
+    monkeypatch.setattr(evaluate_answers, "PROJECT_ROOT", tmp_path)
+
+    monkeypatch.setattr(evaluate_answers, "INPUT_FILE", questions)
+    monkeypatch.setattr(evaluate_answers, "OUTPUT_FILE", results)
+    monkeypatch.setattr(
+        evaluate_answers, "answer_question", fake_answer_question
+    )
+    monkeypatch.setattr(sys, "argv", ["evaluate_answers.py"])
+
+    evaluate_answers.main()
+
+    with results.open(newline="", encoding="utf-8") as f:
+        row = next(csv.DictReader(f))
+
+    evidence_files = list(
+        (tmp_path / "analysis" / "local_evidence").glob("*.jsonl")
+    )
+
+    assert len(evidence_files) == 1
+
+    with evidence_files[0].open(encoding="utf-8") as f:
+        evidence = json.loads(f.readline())
+
+    assert evidence["question_id"] == "1"
+    assert evidence["sources"][0]["page"] == 2
+    assert evidence["sources"][0]["text"] == (
+        "Semantic retrieval identifies similar meanings."
+    )
+    assert row["answer_classification"] == "ANSWERED"
+    assert row["error"] == ""
+    assert Path(row["evidence_file"]) == evidence_files[0]
+    assert Path(row["evidence_file"]).is_file()

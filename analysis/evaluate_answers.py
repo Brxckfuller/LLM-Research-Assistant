@@ -1,5 +1,7 @@
 import argparse
 import csv
+from datetime import datetime
+from uuid import uuid4
 import re
 import sys
 from pathlib import Path
@@ -8,6 +10,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from api.rag_service import answer_question
+from analysis.evidence_store import save_evidence
 from analysis.answer_classifier import AnswerClassification, classify_answer
 
 INPUT_FILE = PROJECT_ROOT / "analysis" / "answer_eval_questions.csv"
@@ -96,6 +99,24 @@ def main():
 
     results = []
 
+    run_id = (
+        datetime.now().strftime("%Y%m%d-%H%M%S")
+        + "-"
+        + uuid4().hex[:8]
+    )
+    evidence_path = (
+        PROJECT_ROOT
+        / "analysis"
+        / "local_evidence"
+        / f"evidence_{run_id}.jsonl"
+    )
+    results_path = (
+        PROJECT_ROOT
+        / "analysis"
+        / "local_evidence"
+        / f"results_{run_id}.csv"
+    )
+
     for row in questions:
         question = row["question"]
         document = row["document"]
@@ -113,6 +134,14 @@ def main():
             answer = response.answer
             abstained = detected_abstention(answer)
             classification = classify_answer(answer)
+
+            save_evidence(
+                question_id=row["question_id"],
+                question=question,
+                response=response,
+                output_path=evidence_path,
+            )
+
             classification_match = (
                 classification == AnswerClassification.ANSWERED
                 if answerable
@@ -137,6 +166,7 @@ def main():
                 ),
                 "abstention_expected": not answerable,
                 "abstention_match": abstained == (not answerable),
+                "evidence_file": str(evidence_path),
                 "source_count": len(response.sources),
                 "source_pages": ";".join(
                     str(source.page)
@@ -162,6 +192,7 @@ def main():
                 "manual_review_required": True,
                 "abstention_expected": not answerable,
                 "abstention_match": "",
+                "evidence_file": "",
                 "source_count": "",
                 "source_pages": "",
                 "retrieval_seconds": "",
@@ -174,13 +205,21 @@ def main():
     if not results:
         raise RuntimeError("No evaluation questions found.")
 
-    with OUTPUT_FILE.open("w", newline="", encoding="utf-8") as file:
+    output_path = (
+        OUTPUT_FILE
+        if OUTPUT_FILE != PROJECT_ROOT / "analysis" / "answer_eval_results.csv"
+        else results_path
+    )
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with output_path.open("w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(file, fieldnames=results[0].keys())
         writer.writeheader()
         writer.writerows(results)
 
     print(f"\nEvaluated {len(results)} question(s).")
-    print(f"Results saved to: {OUTPUT_FILE}")
+    print(f"Results saved to: {output_path}")
+    print(f"Evidence saved to: {evidence_path}")
 
 
 if __name__ == "__main__":
