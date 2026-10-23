@@ -1,0 +1,7 @@
+question_id,document,question,expected_keywords,answerable
+1,rag_demo,What does RAG stand for?,retrieval;augmented;generation,true
+2,rag_demo,What is the purpose of semantic retrieval?,meaning;similarity,true
+3,rag_demo,What is BM25 used for?,keyword;retrieval,true
+4,rag_demo,Why combine semantic retrieval with BM25?,semantic;keyword,true
+5,rag_demo,What does reranking do?,rank;relevance,true
+6,rag_demo,What is the capital of France?,,false

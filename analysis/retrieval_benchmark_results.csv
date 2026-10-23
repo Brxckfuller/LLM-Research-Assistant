@@ -1,0 +1,81 @@
+question,document,method,expected_pages,retrieved_pages,latency_ms,hit_rate_at_10,recall_at_10,precision_at_10,mrr
+What is the imitation game?,turing,bm25,1,"3,13,18,8,8,1,7,15,10,21",0.23498626736303171,1.0,1.0,0.1,0.16666666666666666
+What is the imitation game?,turing,semantic,1,"3,7,21,1,11,10,19,11,8,8",19.379152295490105,1.0,1.0,0.1,0.25
+What is the imitation game?,turing,hybrid,1,"1,3,13,1,7,21,11,10,11,8",7.305472313115994,1.0,1.0,0.2,1.0
+What is the imitation game?,turing,adaptive,1,"3,7,21,1,10,13,8,18,11,17",3963.377333323782,1.0,1.0,0.1,0.25
+What is Lady Lovelace's objection?,turing,bm25,"14,15","14,18,15,13,18,16,21,4,5,3",0.20438898354768753,1.0,1.0,0.2,1.0
+What is Lady Lovelace's objection?,turing,semantic,"14,15","15,18,14,9,9,10,12,11,12,16",23.671416332945228,1.0,1.0,0.2,1.0
+What is Lady Lovelace's objection?,turing,hybrid,"14,15","15,14,18,1,1,12,13,13,12,14",7.4493746894101305,1.0,1.0,0.3,1.0
+What is Lady Lovelace's objection?,turing,adaptive,"14,15","15,14,18,9,2,3,10,12,7,1",968.8160969720533,1.0,1.0,0.2,1.0
+What does Turing say about thinking machines?,turing,bm25,"1,2","18,10,17,16,1,2,18,8,12,13",0.2264026552438736,1.0,1.0,0.2,0.2
+What does Turing say about thinking machines?,turing,semantic,"1,2","1,3,11,8,8,18,5,18,10,13",25.326860990996163,1.0,0.5,0.1,1.0
+What does Turing say about thinking machines?,turing,hybrid,"1,2","1,13,18,8,18,14,3,2,13,17",7.129458244889975,1.0,1.0,0.2,1.0
+What does Turing say about thinking machines?,turing,adaptive,"1,2","1,3,8,11,2,18,14,9,13,15",1073.1397219157468,1.0,1.0,0.2,1.0
+Can machines think according to Turing?,turing,bm25,1,"6,11,10,5,10,9,3,22,17,12",0.22244430147111416,0.0,0.0,0.0,0.0
+Can machines think according to Turing?,turing,semantic,1,"1,3,11,8,8,5,18,3,20,13",26.461777587731678,1.0,1.0,0.1,1.0
+Can machines think according to Turing?,turing,hybrid,1,"1,13,6,11,8,10,8,13,3,19",7.139472368483742,1.0,1.0,0.1,1.0
+Can machines think according to Turing?,turing,adaptive,1,"1,8,3,14,11,9,10,2,13,16",1104.0735413941245,1.0,1.0,0.1,1.0
+What objections to machine intelligence does Turing discuss?,turing,bm25,"9,10,11,12,13,14,15","1,11,10,21,4,17,18,18,13,14",0.26823626831173897,1.0,0.5714285714285714,0.4,0.5
+What objections to machine intelligence does Turing discuss?,turing,semantic,"9,10,11,12,13,14,15","1,11,8,8,3,10,14,2,13,13",10.98279127230247,1.0,0.5714285714285714,0.5,0.5
+What objections to machine intelligence does Turing discuss?,turing,hybrid,"9,10,11,12,13,14,15","1,13,11,14,13,21,12,4,2,10",10.70976397022605,1.0,0.7142857142857143,0.6,0.5
+What objections to machine intelligence does Turing discuss?,turing,adaptive,"9,10,11,12,13,14,15","2,3,15,11,18,1,10,14,12,13",997.7226389261583,1.0,0.8571428571428571,0.6,0.3333333333333333
+How does Turing respond to the mathematical objection?,turing,bm25,9,"10,1,18,13,13,11,14,21,17,10",0.26362529024481773,0.0,0.0,0.0,0.0
+How does Turing respond to the mathematical objection?,turing,semantic,9,"11,4,1,10,13,13,20,5,21,10",10.886611339325706,0.0,0.0,0.0,0.0
+How does Turing respond to the mathematical objection?,turing,hybrid,9,"1,13,10,14,11,6,13,4,13,21",11.158527728791038,0.0,0.0,0.0,0.0
+How does Turing respond to the mathematical objection?,turing,adaptive,9,"2,10,18,3,15,9,11,12,1,14",1116.2571803821872,1.0,1.0,0.1,0.16666666666666666
+What is Turing's prediction about intelligent machines?,turing,bm25,10,"21,18,7,7,13,16,2,8,18,2",0.2384719749291738,0.0,0.0,0.0,0.0
+What is Turing's prediction about intelligent machines?,turing,semantic,10,"1,21,11,7,5,18,8,21,16,3",10.864666352669397,0.0,0.0,0.0,0.0
+What is Turing's prediction about intelligent machines?,turing,hybrid,10,"1,21,7,13,18,13,14,5,8,7",9.998264256864786,0.0,0.0,0.0,0.0
+What is Turing's prediction about intelligent machines?,turing,adaptive,10,"7,1,16,21,14,8,10,11,15,13",1080.253721990933,1.0,1.0,0.1,0.14285714285714285
+How does Turing describe digital computers?,turing,bm25,3,"1,11,13,10,21,14,16,4,17,14",0.2322913302729527,0.0,0.0,0.0,0.0
+How does Turing describe digital computers?,turing,semantic,3,"5,4,8,3,6,7,1,7,6,4",11.039055340612927,1.0,1.0,0.1,0.25
+How does Turing describe digital computers?,turing,hybrid,3,"1,4,6,5,8,14,13,3,13,7",8.836611018826565,1.0,1.0,0.1,0.125
+How does Turing describe digital computers?,turing,adaptive,3,"4,8,5,7,6,13,3,16,10,1",1155.2084723953158,1.0,1.0,0.1,0.14285714285714285
+What is Dennett's view on the hard problem of consciousness?,Dennett_hard,bm25,"1,2","6,5,6,1,4,1,3,7,1,6",0.3865413212527831,1.0,0.5,0.3,0.25
+What is Dennett's view on the hard problem of consciousness?,Dennett_hard,semantic,"1,2","1,7,3,7,1,7,4,2,1,7",13.035819322491685,1.0,1.0,0.4,1.0
+What is Dennett's view on the hard problem of consciousness?,Dennett_hard,hybrid,"1,2","1,1,1,2,6,7,3,4,6,6",12.056402629241347,1.0,1.0,0.4,1.0
+What is Dennett's view on the hard problem of consciousness?,Dennett_hard,adaptive,"1,2","1,6,4,7,3,2,5,1,1,4",1535.2043609600514,1.0,1.0,0.4,1.0
+Why does Dennett reject the hard problem?,Dennett_hard,bm25,"2,3","7,1,6,7,7,2,1,7,4,6",0.08511131939788659,1.0,0.5,0.1,0.16666666666666666
+Why does Dennett reject the hard problem?,Dennett_hard,semantic,"2,3","1,1,6,4,7,1,7,7,2,3",6.280847359448671,1.0,1.0,0.2,0.1111111111111111
+Why does Dennett reject the hard problem?,Dennett_hard,hybrid,"2,3","1,1,1,2,6,6,3,7,4,6",8.420916274189949,1.0,1.0,0.2,0.25
+Why does Dennett reject the hard problem?,Dennett_hard,adaptive,"2,3","1,6,4,2,5,7,3,1,4,6",1623.5012779943645,1.0,1.0,0.2,0.25
+What are easy problems according to Dennett?,Dennett_hard,bm25,2,"1,3,4,3,6,1,4,3,4,6",0.24081898542741934,0.0,0.0,0.0,0.0
+What are easy problems according to Dennett?,Dennett_hard,semantic,2,"1,6,1,1,4,3,3,7,7,7",10.253445012494922,0.0,0.0,0.0,0.0
+What are easy problems according to Dennett?,Dennett_hard,hybrid,2,"1,1,1,2,6,6,3,4,3,4",10.230916707466045,1.0,1.0,0.1,0.25
+What are easy problems according to Dennett?,Dennett_hard,adaptive,2,"1,3,6,4,7,2,5,1,3,1",758.4469996703168,1.0,1.0,0.1,0.16666666666666666
+How does Dennett define consciousness?,Dennett_hard,bm25,"3,4","7,1,7,7,7,6,2,1,6,5",0.11545838788151741,0.0,0.0,0.0,0.0
+How does Dennett define consciousness?,Dennett_hard,semantic,"3,4","7,3,1,7,7,2,4,1,7,6",9.838694784169396,1.0,1.0,0.2,0.5
+How does Dennett define consciousness?,Dennett_hard,hybrid,"3,4","1,1,2,1,6,3,7,4,4,6",8.072777961691221,1.0,1.0,0.3,0.16666666666666666
+How does Dennett define consciousness?,Dennett_hard,adaptive,"3,4","2,3,1,4,7,6,5,4,4,1",2436.5914864465594,1.0,1.0,0.4,0.5
+What does Chalmers define as the hard problem of consciousness?,chalmers1995,bm25,"1,2","4,10,3,5,11,8,4,10,2,11",0.45994467412432033,1.0,0.5,0.1,0.1111111111111111
+What does Chalmers define as the hard problem of consciousness?,chalmers1995,semantic,"1,2","1,1,19,3,2,7,13,19,2,13",30.09195827568571,1.0,1.0,0.4,1.0
+What does Chalmers define as the hard problem of consciousness?,chalmers1995,hybrid,"1,2","1,3,2,2,8,7,16,13,4,13",19.86233362307151,1.0,1.0,0.3,1.0
+What does Chalmers define as the hard problem of consciousness?,chalmers1995,adaptive,"1,2","2,3,1,4,6,7,16,5,10,8",875.7944029445449,1.0,1.0,0.2,1.0
+How does Chalmers distinguish easy and hard problems?,chalmers1995,bm25,"2,3","3,1,4,5,2,10,8,5,4,3",0.22931963515778384,1.0,1.0,0.3,1.0
+How does Chalmers distinguish easy and hard problems?,chalmers1995,semantic,"2,3","1,3,2,7,19,1,5,3,4,9",9.699708394085368,1.0,1.0,0.3,0.5
+How does Chalmers distinguish easy and hard problems?,chalmers1995,hybrid,"2,3","1,3,3,2,5,17,4,1,2,8",11.011194282521805,1.0,1.0,0.4,0.5
+How does Chalmers distinguish easy and hard problems?,chalmers1995,adaptive,"2,3","1,2,3,4,7,5,6,10,18,16",1089.7211387443047,1.0,1.0,0.2,0.5
+What is the explanatory gap according to Chalmers?,chalmers1995,bm25,"4,5","12,4,6,7,17,15,18,5,10,16",0.2850835832456748,1.0,1.0,0.2,0.5
+What is the explanatory gap according to Chalmers?,chalmers1995,semantic,"4,5","1,17,12,19,13,20,10,19,13,12",12.333833224450549,0.0,0.0,0.0,0.0
+What is the explanatory gap according to Chalmers?,chalmers1995,hybrid,"4,5","1,12,17,15,17,5,6,13,7,17",10.019958640138308,1.0,0.5,0.1,0.16666666666666666
+What is the explanatory gap according to Chalmers?,chalmers1995,adaptive,"4,5","4,12,10,5,8,7,18,16,17,6",844.7554583350817,1.0,1.0,0.2,1.0
+What does Chalmers propose as a solution?,chalmers1995,bm25,"12,13","8,4,10,5,11,4,13,2,11,10",0.2714026098450025,1.0,0.5,0.1,0.14285714285714285
+What does Chalmers propose as a solution?,chalmers1995,semantic,"12,13","1,13,17,19,7,19,12,15,8,10",13.114888919517398,1.0,1.0,0.2,0.5
+What does Chalmers propose as a solution?,chalmers1995,hybrid,"12,13","1,17,8,8,2,17,16,13,13,10",12.182777902732292,1.0,0.5,0.2,0.125
+What does Chalmers propose as a solution?,chalmers1995,adaptive,"12,13","8,6,17,7,18,16,12,2,1,5",979.9836946961781,1.0,0.5,0.1,0.14285714285714285
+What are some criticisms of John Searle's Chinese room argument?,John_Searle_Chinese_Room_1980,bm25,"1,2","8,8,5,2,3,1,2,4,2,1",0.3883056342601776,1.0,1.0,0.5,0.25
+What are some criticisms of John Searle's Chinese room argument?,John_Searle_Chinese_Room_1980,semantic,"1,2","3,8,8,7,2,3,3,2,5,2",13.531652900079886,1.0,0.5,0.3,0.2
+What are some criticisms of John Searle's Chinese room argument?,John_Searle_Chinese_Room_1980,hybrid,"1,2","1,1,8,2,8,3,5,3,7,2",10.731264017522335,1.0,1.0,0.4,1.0
+What are some criticisms of John Searle's Chinese room argument?,John_Searle_Chinese_Room_1980,adaptive,"1,2","8,3,6,2,4,1,5,7,6,3",909.6503054412702,1.0,1.0,0.2,0.25
+What is the systems reply to the Chinese Room?,John_Searle_Chinese_Room_1980,bm25,"2,3","3,3,3,4,3,4,5,3,4,5",0.2819860043625037,1.0,0.5,0.5,1.0
+What is the systems reply to the Chinese Room?,John_Searle_Chinese_Room_1980,semantic,"2,3","3,3,2,8,3,3,2,5,4,4",9.981402584041158,1.0,1.0,0.6,1.0
+What is the systems reply to the Chinese Room?,John_Searle_Chinese_Room_1980,hybrid,"2,3","3,1,3,3,3,3,4,5,2,5",10.308653038615981,1.0,1.0,0.6,1.0
+What is the systems reply to the Chinese Room?,John_Searle_Chinese_Room_1980,adaptive,"2,3","3,5,4,8,6,7,2,1,3,3",830.8565972838551,1.0,1.0,0.4,1.0
+Why does Searle argue syntax is insufficient for semantics?,John_Searle_Chinese_Room_1980,bm25,"1,2","8,3,7,6,7,1,6,7,2,7",0.28197234496474266,1.0,1.0,0.2,0.16666666666666666
+Why does Searle argue syntax is insufficient for semantics?,John_Searle_Chinese_Room_1980,semantic,"1,2","7,5,6,2,2,2,8,3,7,2",13.356680671374003,1.0,0.5,0.4,0.25
+Why does Searle argue syntax is insufficient for semantics?,John_Searle_Chinese_Room_1980,hybrid,"1,2","7,6,7,2,1,8,7,3,8,5",10.069430728132525,1.0,1.0,0.2,0.25
+Why does Searle argue syntax is insufficient for semantics?,John_Searle_Chinese_Room_1980,adaptive,"1,2","7,6,2,4,3,1,8,5,6,6",1288.1081802770495,1.0,1.0,0.2,0.3333333333333333
+What did Benjamin Libet discover about voluntary action?,Benjamin Libet,bm25,"1,2","1,8,1,7,4,3,8,9,11,2",0.11290307156741619,1.0,1.0,0.3,1.0
+What did Benjamin Libet discover about voluntary action?,Benjamin Libet,semantic,"1,2","1,6,11,1,7,2,3,3,10,11",10.361166360477606,1.0,1.0,0.3,1.0
+What did Benjamin Libet discover about voluntary action?,Benjamin Libet,hybrid,"1,2","1,6,8,10,2,10,3,8,4,7",23.55415273147325,1.0,1.0,0.2,1.0
+What did Benjamin Libet discover about voluntary action?,Benjamin Libet,adaptive,"1,2","8,7,1,3,5,4,6,2,11,10",1039.0436386999984,1.0,1.0,0.2,0.3333333333333333

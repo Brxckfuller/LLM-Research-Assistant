@@ -1,0 +1,20 @@
+question_id,document,question,answerable,answer,keyword_coverage,detected_abstention,abstention_expected,abstention_match,source_count,source_pages,retrieval_seconds,generation_seconds,error
+1,rag_demo,What does RAG stand for?,True,"## Answer
+
+Retrieval-Augmented Generation (RAG) is a system that combines information retrieval with a language model. The central mechanism of RAG is that it retrieves relevant passages from a document collection and includes them in the generation prompt, instead of relying entirely on knowledge stored in model parameters. This allows the system to leverage the vast amount of information available in the document collection, while also providing the language model with context and supporting evidence.
+
+The retrieval process in RAG involves using a library like FAISS for similarity search over dense vectors, or a lexical ranking algorithm like BM25, to retrieve candidate passages. The retrieved passages are then provided to the language model as supporting context, which enables the system to generate more accurate and informative responses. The Grounded Answer Generation approach in RAG emphasizes the importance of distinguishing supported claims from missing evidence, citing relevant sources, and avoiding inventing unsupported facts.
+
+The evaluation of RAG systems involves assessing both retrieval quality and answer quality. Retrieval quality can be evaluated using metrics such as Recall at K, Precision at K, and Mean Reciprocal Rank, while answer quality requires additional evaluation of factual correctness, faithfulness, citation accuracy, and completeness.
+
+## Key points
+
+* RAG combines information retrieval with a language model to leverage the vast amount of information available in the document collection.
+* The retrieval process in RAG involves using libraries like FAISS or BM25 to retrieve candidate passages.
+* The Grounded Answer Generation approach in RAG emphasizes the importance of distinguishing supported claims from missing evidence.
+
+## Evidence from the text
+
+* ""Retrieval-Augmented Generation (RAG) combines information retrieval with a language model."" (Source 1, Page 1)
+* ""The system retrieves relevant passages from a document collection and includes them in the generation prompt."" (Source 1, Page 1)
+* ""Grounded Answer Generation Retrieved passages are provided to a language model as supporting context."" (Source 3, Page 1)",1.0,False,False,True,3,1;2;1,15.628,56.499,
