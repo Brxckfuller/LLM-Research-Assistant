@@ -683,6 +683,84 @@ A retrieval was considered successful if at least one expected supporting page a
 
 The hybrid retrieval pipeline achieved a Recall@10 of **0.900**, indicating that relevant evidence was retrieved for 90% of evaluation queries. A Precision@10 of **0.145** reflects the challenging nature of dense document retrieval, where only a subset of retrieved passages are expected to be directly relevant. The Mean Reciprocal Rank (MRR) of **0.459** indicates that relevant passages typically appeared near the top of the ranked retrieval results.
 
+
+---
+
+## Answer Quality and Citation Evaluation
+
+In addition to retrieval quality and system latency, the project evaluates how effectively the language model uses retrieved evidence to generate grounded answers.
+
+The evaluation pipeline includes:
+
+- `analysis/evaluate_answers.py` — generates answers and records evaluation results.
+- `analysis/answer_classifier.py` — classifies responses as `ANSWERED`, `ABSTAINED`, or `MIXED`.
+- `analysis/evidence_store.py` — records retrieved passages and their source metadata.
+- `analysis/citation_validator.py` — validates source numbers and page references against retrieved evidence.
+
+The answer evaluation dataset contains six questions based on a demonstration RAG document, including one question that cannot be answered from the document.
+
+### Answer Formatting Benchmark
+
+Two representative questions were evaluated before and after improvements to answer formatting and document-grounding instructions.
+
+| Metric | RAG Definition | Unsupported Question |
+|---|---:|---:|
+| Original answer length | 2,722 characters | 1,228 characters |
+| Revised answer length | 852 characters | 81 characters |
+| Length reduction | 68.7% | 93.4% |
+| Revised classification | ANSWERED | ABSTAINED |
+| Retrieval time | 16.047 s | 16.008 s |
+| Generation time | 31.247 s | 15.538 s |
+
+The supported question asked what RAG stands for. The unsupported question asked for the capital of France, information absent from the retrieved demonstration document.
+
+The revised responses were substantially shorter while retaining appropriate answerability behaviour in these two examples.
+
+These measurements represent individual local runs rather than statistically representative performance comparisons. The revised answers were generated under successive prompt configurations.
+
+### Citation Validation
+
+The citation validator checks whether references formatted as `(Source N, Page P)` correspond to actual retrieved source positions and page numbers.
+
+For the revised RAG-definition answer, all three citation references passed validation.
+
+The unsupported question produced an appropriate abstention without citing irrelevant evidence.
+
+Citation-reference validity does not establish semantic faithfulness. A citation can reference an existing passage without that passage supporting the associated claim.
+
+### Automated Testing and Reproducibility
+
+The project currently has 47 passing automated tests covering retrieval, evaluation, answer classification, evidence capture, citation validation, and API behaviour.
+
+Run the automated test suite from the repository root:
+
+```bash
+python -m pytest tests/ -q
+```
+
+To evaluate a specific question using the locally configured document collection and Ollama model:
+
+```bash
+python analysis/evaluate_answers.py --question-id 1
+```
+
+Evaluation outputs are saved locally under `analysis/local_evidence/`, with run-specific CSV results and JSONL evidence records.
+
+These outputs are excluded from version control because retrieved passages may contain copyrighted or sensitive document content.
+
+### Evaluation Limitations
+
+The answer classifier uses heuristic patterns and may not recognise every form of abstention.
+
+Citation validation checks source and page references rather than whether the cited evidence semantically supports each claim.
+
+Only two representative answers have undergone the recent manual grounding review. Larger evaluation datasets, independently annotated supporting passages, and repeated inference runs would be required to establish broader answer reliability and performance.
+
+---
+
+
+
+
 ---
 
 # Engineering Trade-offs
